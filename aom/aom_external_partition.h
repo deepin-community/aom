@@ -20,6 +20,10 @@
 
 /*!\file
  * \brief Provides function pointer definitions for the external partition.
+ *
+ * \note The external partition API should be considered experimental. Until the
+ * external partition API is declared stable, breaking changes may be made to
+ * this API in a future libaom release.
  */
 
 /*!\brief Current ABI version number
@@ -30,7 +34,7 @@
  * types, removing or reassigning enums, adding/removing/rearranging
  * fields to structures.
  */
-#define AOM_EXT_PART_ABI_VERSION 3
+#define AOM_EXT_PART_ABI_VERSION 8
 
 #ifdef __cplusplus
 extern "C" {
@@ -240,6 +244,50 @@ typedef struct aom_partition_features {
   int frame_width;                ///< Frame width
   int frame_height;               ///< Frame height
   int block_size;                 ///< As "BLOCK_SIZE" in av1/common/enums.h
+  /*!
+   * Valid partition types. A bitmask is used.  "1" represents the
+   * corresponding type is valid. The bitmask follows the enum order for
+   * PARTITION_TYPE in "enums.h" to represent one partition type at a bit.
+   * For example, 0x01 stands for only PARTITION_NONE is valid,
+   * 0x09 (00...001001) stands for PARTITION_NONE and PARTITION_SPLIT are valid.
+   */
+  int valid_partition_types;
+  int update_type;    ///< Frame update type, defined in ratectrl.h
+  int qindex;         ///< Quantization index, range: [0, 255]
+  int rdmult;         ///< Rate-distortion multiplier
+  int pyramid_level;  ///< The level of this frame in the hierarchical structure
+  int has_above_block;     ///< Has above neighbor block
+  int above_block_width;   ///< Width of the above block, -1 if not exist
+  int above_block_height;  ///< Height of the above block, -1 if not exist
+  int has_left_block;      ///< Has left neighbor block
+  int left_block_width;    ///< Width of the left block, -1 if not exist
+  int left_block_height;   ///< Height of the left block, -1 if not exist
+  /*!
+   * The following parameters are collected from applying simple motion search.
+   * Sum of squared error (SSE) and variance of motion compensated residual
+   * are good indicators of block partitioning.
+   * If a block is a square, we also apply motion search for its 4 sub blocks.
+   * If not a square, their values are -1.
+   * If a block is able to split horizontally, we apply motion search and get
+   * stats for horizontal blocks. If not, their values are -1.
+   * If a block is able to split vertically, we apply motion search and get
+   * stats for vertical blocks. If not, their values are -1.
+   */
+  unsigned int block_sse;          ///< SSE of motion compensated residual
+  unsigned int block_var;          ///< Variance of motion compensated residual
+  unsigned int sub_block_sse[4];   ///< SSE of sub blocks.
+  unsigned int sub_block_var[4];   ///< Variance of sub blocks.
+  unsigned int horz_block_sse[2];  ///< SSE of horz sub blocks
+  unsigned int horz_block_var[2];  ///< Variance of horz sub blocks
+  unsigned int vert_block_sse[2];  ///< SSE of vert sub blocks
+  unsigned int vert_block_var[2];  ///< Variance of vert sub blocks
+  /*!
+   * The following parameters are calculated from tpl model.
+   * If tpl model is not available, their values are -1.
+   */
+  int64_t tpl_intra_cost;   ///< Intra cost, ref to "TplDepStats" in tpl_model.h
+  int64_t tpl_inter_cost;   ///< Inter cost in tpl model
+  int64_t tpl_mc_dep_cost;  ///< Motion compensated dependency cost in tpl model
 } aom_partition_features_t;
 
 /*!\brief Partition decisions received from the external model.
@@ -265,10 +313,10 @@ typedef struct aom_partition_decision {
   int do_rectangular_split;        ///< Try rectangular split partition
   int do_square_split;             ///< Try square split partition
   int prune_rect_part[2];          ///< Prune rectangular partition
-  int horza_partition_allowed;     ///< Allow HORZ_A partitioin
-  int horzb_partition_allowed;     ///< Allow HORZ_B partitioin
-  int verta_partition_allowed;     ///< Allow VERT_A partitioin
-  int vertb_partition_allowed;     ///< Allow VERT_B partitioin
+  int horza_partition_allowed;     ///< Allow HORZ_A partition
+  int horzb_partition_allowed;     ///< Allow HORZ_B partition
+  int verta_partition_allowed;     ///< Allow VERT_A partition
+  int vertb_partition_allowed;     ///< Allow VERT_B partition
   int partition_horz4_allowed;     ///< Allow HORZ4 partition
   int partition_vert4_allowed;     ///< Allow VERT4 partition
 } aom_partition_decision_t;
@@ -278,7 +326,7 @@ typedef struct aom_partition_decision {
  * The encoding stats collected by encoding the superblock with the
  * given partition types.
  * The encoder sends the stats to the external model for training
- * or inference though "func()" defined in ....
+ * or inference through "func()" defined in ....
  */
 typedef struct aom_partition_stats {
   int rate;        ///< Rate cost of the block
