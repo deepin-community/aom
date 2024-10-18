@@ -13,9 +13,9 @@ cd "$AUTOPKGTEST_TMP"
 # Compile with and without pkg-config
 CROSS_COMPILE="${DEB_HOST_GNU_TYPE:+$DEB_HOST_GNU_TYPE-}"
 
-${CROSS_COMPILE}gcc -Wall -Wextra -O2 library-build.c -o build1 -laom
+${CROSS_COMPILE}gcc -Wall -Wextra -O2 library-build.c -o build1 -laom ${CFLAGS} ${LDFLAGS}
 echo "build1: compiled"
-${CROSS_COMPILE}gcc -Wall -Wextra -O2 library-build.c -o build2 $(${CROSS_COMPILE}pkg-config --cflags --libs aom)
+${CROSS_COMPILE}gcc -Wall -Wextra -O2 library-build.c -o build2 $(${CROSS_COMPILE}pkg-config --cflags --libs aom) ${CFLAGS} ${LDFLAGS}
 echo "build2: compiled"
 
 # Run the tests

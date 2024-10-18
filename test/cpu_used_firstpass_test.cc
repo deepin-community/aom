@@ -9,6 +9,8 @@
  * PATENTS file, you can obtain it at www.aomedia.org/license/patent.
  */
 
+#include <cstdlib>
+
 #include "test/codec_factory.h"
 #include "test/encode_test_driver.h"
 #include "test/i420_video_source.h"
@@ -17,16 +19,17 @@
 namespace {
 
 const double kPsnrDiffThreshold = 0.1;
-const int kFirstPassCpuUsed[] = { 2, 4, 6 };
 
-class CpuUsedFirstpassTest : public ::libaom_test::CodecTestWithParam<int>,
-                             public ::libaom_test::EncoderTest {
+// Params: first pass cpu used, second pass cpu used
+class CpuUsedFirstpassTest
+    : public ::libaom_test::CodecTestWith2Params<int, int>,
+      public ::libaom_test::EncoderTest {
  protected:
   CpuUsedFirstpassTest()
-      : EncoderTest(GET_PARAM(0)), second_pass_cpu_used_(GET_PARAM(1)) {}
-  virtual ~CpuUsedFirstpassTest() {}
+      : EncoderTest(GET_PARAM(0)), second_pass_cpu_used_(GET_PARAM(2)) {}
+  ~CpuUsedFirstpassTest() override = default;
 
-  virtual void SetUp() {
+  void SetUp() override {
     InitializeConfig(::libaom_test::kTwoPassGood);
     const aom_rational timebase = { 1, 30 };
     cfg_.g_timebase = timebase;
@@ -37,7 +40,7 @@ class CpuUsedFirstpassTest : public ::libaom_test::CodecTestWithParam<int>,
     init_flags_ = AOM_CODEC_USE_PSNR;
   }
 
-  virtual void BeginPassHook(unsigned int pass) {
+  void BeginPassHook(unsigned int pass) override {
     psnr_ = 0.0;
     nframes_ = 0;
 
@@ -47,13 +50,13 @@ class CpuUsedFirstpassTest : public ::libaom_test::CodecTestWithParam<int>,
       cpu_used_ = second_pass_cpu_used_;
   }
 
-  virtual void PSNRPktHook(const aom_codec_cx_pkt_t *pkt) {
+  void PSNRPktHook(const aom_codec_cx_pkt_t *pkt) override {
     psnr_ += pkt->data.psnr.psnr[0];
     nframes_++;
   }
 
-  virtual void PreEncodeFrameHook(::libaom_test::VideoSource *video,
-                                  ::libaom_test::Encoder *encoder) {
+  void PreEncodeFrameHook(::libaom_test::VideoSource *video,
+                          ::libaom_test::Encoder *encoder) override {
     if (video->frame() == 0) {
       encoder->Control(AOME_SET_CPUUSED, cpu_used_);
       encoder->Control(AOME_SET_ENABLEAUTOALTREF, 1);
@@ -73,7 +76,6 @@ class CpuUsedFirstpassTest : public ::libaom_test::CodecTestWithParam<int>,
     libaom_test::I420VideoSource video("niklas_640_480_30.yuv", 640, 480,
                                        cfg_.g_timebase.den, cfg_.g_timebase.num,
                                        0, 30);
-    const int size = sizeof(kFirstPassCpuUsed) / sizeof(kFirstPassCpuUsed[0]);
     double ref_psnr;
     double psnr_diff;
 
@@ -81,15 +83,13 @@ class CpuUsedFirstpassTest : public ::libaom_test::CodecTestWithParam<int>,
     ASSERT_NO_FATAL_FAILURE(RunLoop(&video));  // same preset case ref_psnr
     ref_psnr = GetAveragePsnr();
 
-    for (int i = 0; i < size; i++) {
-      first_pass_cpu_used_ = kFirstPassCpuUsed[i];
-      if (first_pass_cpu_used_ == second_pass_cpu_used_) continue;
-      ASSERT_NO_FATAL_FAILURE(RunLoop(&video));
-      psnr_diff = abs(ref_psnr - GetAveragePsnr());
-      EXPECT_LT(psnr_diff, GetPsnrDiffThreshold())
-          << "first pass cpu used = " << first_pass_cpu_used_
-          << ", second pass cpu used = " << second_pass_cpu_used_;
-    }
+    first_pass_cpu_used_ = GET_PARAM(1);
+    if (first_pass_cpu_used_ == second_pass_cpu_used_) return;
+    ASSERT_NO_FATAL_FAILURE(RunLoop(&video));
+    psnr_diff = std::abs(ref_psnr - GetAveragePsnr());
+    EXPECT_LT(psnr_diff, GetPsnrDiffThreshold())
+        << "first pass cpu used = " << first_pass_cpu_used_
+        << ", second pass cpu used = " << second_pass_cpu_used_;
   }
 
   int cpu_used_;
@@ -105,9 +105,25 @@ class CpuUsedFirstpassTestLarge : public CpuUsedFirstpassTest {};
 
 TEST_P(CpuUsedFirstpassTestLarge, FirstPassTest) { DoTest(); }
 
-AV1_INSTANTIATE_TEST_SUITE(CpuUsedFirstpassTestLarge,
-                           ::testing::Values(2));  // cpu_used
+#if defined(__has_feature)
+#if __has_feature(memory_sanitizer)
+static const int kSecondPassCpuUsedLarge[] = { 2, 4 };
+static const int kSecondPassCpuUsed[] = { 6 };
+#else
+static const int kSecondPassCpuUsedLarge[] = { 2 };
+static const int kSecondPassCpuUsed[] = { 4, 6 };
+#endif
+#else
+static const int kSecondPassCpuUsedLarge[] = { 2 };
+static const int kSecondPassCpuUsed[] = { 4, 6 };
+#endif
 
-AV1_INSTANTIATE_TEST_SUITE(CpuUsedFirstpassTest,
-                           ::testing::Values(4, 6));  // cpu_used
+AV1_INSTANTIATE_TEST_SUITE(
+    CpuUsedFirstpassTestLarge, ::testing::Values(2, 4, 6),
+    ::testing::ValuesIn(kSecondPassCpuUsedLarge));  // cpu_used
+
+AV1_INSTANTIATE_TEST_SUITE(
+    CpuUsedFirstpassTest, ::testing::Values(2, 4, 6),
+    ::testing::ValuesIn(kSecondPassCpuUsed));  // cpu_used
+
 }  // namespace

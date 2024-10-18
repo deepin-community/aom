@@ -26,19 +26,20 @@ class ScalabilityTest
       public ::libaom_test::EncoderTest {
  protected:
   ScalabilityTest() : EncoderTest(GET_PARAM(0)) {}
-  virtual ~ScalabilityTest() {}
+  ~ScalabilityTest() override = default;
 
-  virtual void SetUp() {
+  void SetUp() override {
     InitializeConfig(GET_PARAM(1));
     num_spatial_layers_ = 2;
   }
 
-  virtual void PreEncodeFrameHook(::libaom_test::VideoSource *video,
-                                  ::libaom_test::Encoder *encoder) {
+  void PreEncodeFrameHook(::libaom_test::VideoSource *video,
+                          ::libaom_test::Encoder *encoder) override {
     if (video->frame() == 0) {
       encoder->Control(AOME_SET_CPUUSED, kCpuUsed);
       encoder->Control(AOME_SET_NUMBER_SPATIAL_LAYERS, num_spatial_layers_);
-    } else if (video->frame() % num_spatial_layers_) {
+    }
+    if (video->frame() % num_spatial_layers_) {
       frame_flags_ = AOM_EFLAG_NO_REF_LAST2 | AOM_EFLAG_NO_REF_LAST3 |
                      AOM_EFLAG_NO_REF_GF | AOM_EFLAG_NO_REF_ARF |
                      AOM_EFLAG_NO_REF_BWD | AOM_EFLAG_NO_REF_ARF2 |

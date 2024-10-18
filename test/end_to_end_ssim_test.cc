@@ -66,7 +66,7 @@ class EndToEndSSIMTest
         test_video_param_(GET_PARAM(2)), cpu_used_(GET_PARAM(3)), nframes_(0),
         ssim_(0.0) {}
 
-  ~EndToEndSSIMTest() override {}
+  ~EndToEndSSIMTest() override = default;
 
   void SetUp() override { InitializeConfig(encoding_mode_); }
 
@@ -156,7 +156,7 @@ class EndToEndSSIMTest
     std::unique_ptr<libaom_test::VideoSource> video(
         new libaom_test::Y4mVideoSource(test_video_param_.filename, 0,
                                         kFrames));
-    ASSERT_TRUE(video.get() != NULL);
+    ASSERT_NE(video, nullptr);
     ASSERT_NO_FATAL_FAILURE(RunLoop(video.get()));
     const double ssim = GetAverageSsim();
     EXPECT_GT(ssim, GetSsimThreshold())

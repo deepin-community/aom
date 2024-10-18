@@ -60,7 +60,7 @@ Comment:
       INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER FROM ANY CAUSES OF
       ACTION OF ANY KIND WITH RESPECT TO THIS LICENSE, WHETHER BASED ON BREACH
       OF CONTRACT, TORT (INCLUDING NEGLIGENCE), OR OTHERWISE, AND WHETHER OR
-      NOT THE OTHER PARTRY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+      NOT THE OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  .
  2. Definitions.
  .
@@ -114,7 +114,7 @@ Comment:
        License was issued.
 
 Files: *
-Copyright: 2001-2021, Alliance for Open Media
+Copyright: 2001-2022, Alliance for Open Media
 License: BSD-2-clause
 
 Files: common/md5_utils.c
@@ -152,9 +152,8 @@ Files: third_party/libyuv/source/*
 Copyright: 2011-2021, The LibYuv Project Authors
 License: BSD-2-Clause
 
-Files: third_party/libyuv/source/x86inc.asm
-       third_party/x86inc/*
-Copyright: 2005-2016, x264 project
+Files: third_party/x86inc/*
+Copyright: 2005-2019, x264 project
 License: ISC
 
 Files: third_party/vector/*

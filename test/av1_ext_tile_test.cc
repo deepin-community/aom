@@ -58,12 +58,12 @@ class AV1ExtTileTest
     tile_md5_.clear();
   }
 
-  virtual ~AV1ExtTileTest() {
+  ~AV1ExtTileTest() override {
     aom_img_free(&tile_img_);
     delete decoder_;
   }
 
-  virtual void SetUp() {
+  void SetUp() override {
     InitializeConfig(encoding_mode_);
 
     cfg_.g_lag_in_frames = 0;
@@ -74,8 +74,8 @@ class AV1ExtTileTest
     cfg_.rc_min_quantizer = 0;
   }
 
-  virtual void PreEncodeFrameHook(::libaom_test::VideoSource *video,
-                                  ::libaom_test::Encoder *encoder) {
+  void PreEncodeFrameHook(::libaom_test::VideoSource *video,
+                          ::libaom_test::Encoder *encoder) override {
     if (video->frame() == 0) {
       // Encode setting
       encoder->Control(AOME_SET_CPUUSED, set_cpu_used_);
@@ -90,16 +90,14 @@ class AV1ExtTileTest
       // size of 64 x 64 pixels(i.e. 1 SB) for <= 4k resolution.
       encoder->Control(AV1E_SET_TILE_COLUMNS, 6);
       encoder->Control(AV1E_SET_TILE_ROWS, 6);
-    }
-
-    if (video->frame() == 1) {
+    } else if (video->frame() == 1) {
       frame_flags_ =
           AOM_EFLAG_NO_UPD_LAST | AOM_EFLAG_NO_UPD_GF | AOM_EFLAG_NO_UPD_ARF;
     }
   }
 
-  virtual void DecompressedFrameHook(const aom_image_t &img,
-                                     aom_codec_pts_t pts) {
+  void DecompressedFrameHook(const aom_image_t &img,
+                             aom_codec_pts_t pts) override {
     // Skip 1 already decoded frame to be consistent with the decoder in this
     // test.
     if (pts == (aom_codec_pts_t)kSkip) return;
@@ -110,7 +108,7 @@ class AV1ExtTileTest
     md5_.push_back(md5_res.Get());
   }
 
-  virtual void FramePktHook(const aom_codec_cx_pkt_t *pkt) {
+  void FramePktHook(const aom_codec_cx_pkt_t *pkt) override {
     // Skip decoding 1 frame.
     if (pkt->data.frame.pts == (aom_codec_pts_t)kSkip) return;
 

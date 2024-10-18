@@ -1,4 +1,7 @@
 #!/usr/bin/make -f
+
+include /usr/share/dpkg/default.mk
+include /usr/share/dpkg/pkg-info.mk
 include /usr/share/dpkg/architecture.mk
 
 export DEB_BUILD_MAINT_OPTIONS := hardening=+all
@@ -32,26 +35,59 @@ ifeq ($(DEB_HOST_ARCH),powerpcspe)
   CONFIG_EXTRA := -DENABLE_VSX=OFF
 endif
 
+# Explicitly set internal flag CONFIG_BIG_ENDIAN, because
+# aom CMake buildsystem does not detect endian issue and
+# cannot set this internal flag correctly.
+# Ref: https://bugs.chromium.org/p/aomedia/issues/detail?id=3487#c20
+ifeq ($(DEB_BUILD_ARCH_ENDIAN),little)
+  CONFIG_EXTRA_ENDIAN := -DCONFIG_BIG_ENDIAN=0
+else
+  CONFIG_EXTRA_ENDIAN := -DCONFIG_BIG_ENDIAN=1
+endif
+
+
 # Use -Bbuild-debian to locate built documentation
 %:
 	dh $@ -Bbuild-debian
 
-# Examples and tools not built because they require various private
-#  symbols from libaom.so which we filter out.
+# Force building with system libyuv and webm
+execute_before_dh_auto_configure:
+	rm -rf $(CURDIR)/third_party/libyuv
+	rm -rf $(CURDIR)/third_party/libwebm
+
 # Tests disabled because they require network access to download test
 #  data.
+#
 # Setting GIT_EXECUTABLE to some invalid file prevents the version
 #  being taken from git if we're on a Debian packaging git branch.
+#
+# For FORCE_HIGHBITDEPTH_DECODING, see git commit
+# 2dd87d9b05b36811aaf19d3c4e47e6e04ccf9de8.
+#
 override_dh_auto_configure:
 	dh_auto_configure -- \
 		-DBUILD_SHARED_LIBS=1 \
-		-DCONFIG_LOWBITDEPTH=1 \
+		-DFORCE_HIGHBITDEPTH_DECODING=0 \
+		-DCONFIG_LIBYUV=1 \
 		-DCONFIG_MULTITHREAD=1 \
 		-DENABLE_TESTS=0 \
 		-DGIT_EXECUTABLE=/nonexistant-binary \
 		-DAOM_TARGET_CPU=$(TARGET_CPU) \
+		$(CONFIG_EXTRA_ENDIAN) \
 		$(CONFIG_EXTRA)
 
 # Do not compress html changelog which breaks documentation
 override_dh_compress:
 	dh_compress -Xchangelog.html
+
+override_dh_auto_test:
+	dh_auto_test
+	PATH=$$PATH:$(CURDIR)/build-debian AUTOPKGTEST_TMP=build-debian ./debian/tests/encode-decode
+	CFLAGS=-I$(CURDIR) LDFLAGS="-laom -L$(CURDIR)/build-debian" AUTOPKGTEST_TMP=build-debian ./debian/tests/library-build
+
+# Currently manually invoked before build. Not invoked during build.
+help2man:
+	help2man --version-string='$(DEB_VERSION_UPSTREAM)' -n 'AOMedia Project AV1 Encoder' -N --no-discard-stderr debian/tmp/usr/bin/aomenc > debian/aomenc.1
+	help2man --version-string='$(DEB_VERSION_UPSTREAM)' -n 'AOMedia Project AV1 Decoder' -N --no-discard-stderr debian/tmp/usr/bin/aomdec > debian/aomdec.1
+
+.PHONY: help2man

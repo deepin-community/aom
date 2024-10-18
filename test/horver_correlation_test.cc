@@ -33,14 +33,14 @@ typedef std::tuple<const HorverFunc> HorverTestParam;
 
 class HorverTest : public ::testing::TestWithParam<HorverTestParam> {
  public:
-  virtual void SetUp() {
+  void SetUp() override {
     data_buf_ = (int16_t *)aom_malloc(MAX_SB_SQUARE * sizeof(int16_t));
     ASSERT_NE(data_buf_, nullptr);
     target_func_ = GET_PARAM(0);
   }
-  virtual void TearDown() { aom_free(data_buf_); }
-  void RunHorverTest(void);
-  void RunHorverTest_ExtremeValues(void);
+  void TearDown() override { aom_free(data_buf_); }
+  void RunHorverTest();
+  void RunHorverTest_ExtremeValues();
   void RunHorverSpeedTest(int run_times);
 
  private:
@@ -50,7 +50,7 @@ class HorverTest : public ::testing::TestWithParam<HorverTestParam> {
 };
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(HorverTest);
 
-void HorverTest::RunHorverTest(void) {
+void HorverTest::RunHorverTest() {
   for (int block_size = 0; block_size < BLOCK_SIZES_ALL; block_size++) {
     const int w = block_size_wide[block_size];
     const int h = block_size_high[block_size];
@@ -107,7 +107,7 @@ void HorverTest::RunHorverSpeedTest(int run_times) {
   }
 }
 
-void HorverTest::RunHorverTest_ExtremeValues(void) {
+void HorverTest::RunHorverTest_ExtremeValues() {
   for (int i = 0; i < MAX_SB_SQUARE; ++i) {
     // Most of get_horver_test is squaring and summing, so simply saturating
     // the whole buffer is mostly likely to cause an overflow.
