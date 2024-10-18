@@ -12,11 +12,12 @@
 #ifndef AOM_TEST_TRANSFORM_TEST_BASE_H_
 #define AOM_TEST_TRANSFORM_TEST_BASE_H_
 
-#include "config/aom_config.h"
+#include "third_party/googletest/src/googletest/include/gtest/gtest.h"
 
-#include "aom_mem/aom_mem.h"
 #include "aom/aom_codec.h"
 #include "aom_dsp/txfm_common.h"
+#include "aom_mem/aom_mem.h"
+#include "test/acm_random.h"
 
 namespace libaom_test {
 
@@ -40,7 +41,7 @@ using IhtFunc = void (*)(const tran_low_t *in, uint8_t *out, int stride,
 template <typename OutType>
 class TransformTestBase {
  public:
-  virtual ~TransformTestBase() {}
+  virtual ~TransformTestBase() = default;
 
  protected:
   virtual void RunFwdTxfm(const int16_t *in, OutType *out, int stride) = 0;
@@ -55,16 +56,22 @@ class TransformTestBase {
 
     int16_t *test_input_block = reinterpret_cast<int16_t *>(
         aom_memalign(16, sizeof(int16_t) * num_coeffs_));
+    ASSERT_NE(test_input_block, nullptr);
     OutType *test_temp_block = reinterpret_cast<OutType *>(
         aom_memalign(16, sizeof(test_temp_block[0]) * num_coeffs_));
+    ASSERT_NE(test_temp_block, nullptr);
     uint8_t *dst = reinterpret_cast<uint8_t *>(
         aom_memalign(16, sizeof(uint8_t) * num_coeffs_));
+    ASSERT_NE(dst, nullptr);
     uint8_t *src = reinterpret_cast<uint8_t *>(
         aom_memalign(16, sizeof(uint8_t) * num_coeffs_));
+    ASSERT_NE(src, nullptr);
     uint16_t *dst16 = reinterpret_cast<uint16_t *>(
         aom_memalign(16, sizeof(uint16_t) * num_coeffs_));
+    ASSERT_NE(dst16, nullptr);
     uint16_t *src16 = reinterpret_cast<uint16_t *>(
         aom_memalign(16, sizeof(uint16_t) * num_coeffs_));
+    ASSERT_NE(src16, nullptr);
 
     for (int i = 0; i < count_test_block; ++i) {
       // Initialize a test block with input range [-255, 255].
@@ -126,10 +133,13 @@ class TransformTestBase {
 
     int16_t *input_block = reinterpret_cast<int16_t *>(
         aom_memalign(16, sizeof(int16_t) * stride * height_));
+    ASSERT_NE(input_block, nullptr);
     OutType *output_ref_block = reinterpret_cast<OutType *>(
         aom_memalign(16, sizeof(output_ref_block[0]) * num_coeffs_));
+    ASSERT_NE(output_ref_block, nullptr);
     OutType *output_block = reinterpret_cast<OutType *>(
         aom_memalign(16, sizeof(output_block[0]) * num_coeffs_));
+    ASSERT_NE(output_block, nullptr);
 
     for (int i = 0; i < count_test_block; ++i) {
       int j, k;
@@ -175,12 +185,16 @@ class TransformTestBase {
 
     int16_t *input_block = reinterpret_cast<int16_t *>(
         aom_memalign(16, sizeof(int16_t) * num_coeffs_));
+    ASSERT_NE(input_block, nullptr);
     OutType *trans_block = reinterpret_cast<OutType *>(
         aom_memalign(16, sizeof(trans_block[0]) * num_coeffs_));
+    ASSERT_NE(trans_block, nullptr);
     uint8_t *output_block = reinterpret_cast<uint8_t *>(
         aom_memalign(16, sizeof(uint8_t) * stride * height_));
+    ASSERT_NE(output_block, nullptr);
     uint8_t *output_ref_block = reinterpret_cast<uint8_t *>(
         aom_memalign(16, sizeof(uint8_t) * stride * height_));
+    ASSERT_NE(output_ref_block, nullptr);
 
     for (int i = 0; i < count_test_block; ++i) {
       // Initialize a test block with input range [-mask_, mask_].
@@ -221,10 +235,13 @@ class TransformTestBase {
 
     int16_t *input_extreme_block = reinterpret_cast<int16_t *>(
         aom_memalign(16, sizeof(int16_t) * num_coeffs_));
+    ASSERT_NE(input_extreme_block, nullptr);
     OutType *output_ref_block = reinterpret_cast<OutType *>(
         aom_memalign(16, sizeof(output_ref_block[0]) * num_coeffs_));
+    ASSERT_NE(output_ref_block, nullptr);
     OutType *output_block = reinterpret_cast<OutType *>(
         aom_memalign(16, sizeof(output_block[0]) * num_coeffs_));
+    ASSERT_NE(output_block, nullptr);
 
     for (int i = 0; i < count_test_block; ++i) {
       // Initialize a test block with input range [-mask_, mask_].
@@ -263,17 +280,23 @@ class TransformTestBase {
 
     int16_t *in = reinterpret_cast<int16_t *>(
         aom_memalign(16, sizeof(int16_t) * num_coeffs_));
+    ASSERT_NE(in, nullptr);
     OutType *coeff = reinterpret_cast<OutType *>(
         aom_memalign(16, sizeof(coeff[0]) * num_coeffs_));
+    ASSERT_NE(coeff, nullptr);
     uint8_t *dst = reinterpret_cast<uint8_t *>(
         aom_memalign(16, sizeof(uint8_t) * num_coeffs_));
+    ASSERT_NE(dst, nullptr);
     uint8_t *src = reinterpret_cast<uint8_t *>(
         aom_memalign(16, sizeof(uint8_t) * num_coeffs_));
+    ASSERT_NE(src, nullptr);
 
     uint16_t *dst16 = reinterpret_cast<uint16_t *>(
         aom_memalign(16, sizeof(uint16_t) * num_coeffs_));
+    ASSERT_NE(dst16, nullptr);
     uint16_t *src16 = reinterpret_cast<uint16_t *>(
         aom_memalign(16, sizeof(uint16_t) * num_coeffs_));
+    ASSERT_NE(src16, nullptr);
 
     for (int i = 0; i < count_test_block; ++i) {
       // Initialize a test block with input range [-mask_, mask_].

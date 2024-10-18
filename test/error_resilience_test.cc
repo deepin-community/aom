@@ -37,7 +37,7 @@ class ErrorResilienceTestLarge
     Reset();
   }
 
-  virtual ~ErrorResilienceTestLarge() {}
+  ~ErrorResilienceTestLarge() override = default;
 
   void Reset() {
     error_nframes_ = 0;
@@ -58,9 +58,9 @@ class ErrorResilienceTestLarge
     init_flags_ = AOM_CODEC_USE_PSNR;
   }
 
-  virtual void SetUp() { InitializeConfig(encoding_mode_); }
+  void SetUp() override { InitializeConfig(encoding_mode_); }
 
-  virtual void BeginPassHook(unsigned int /*pass*/) {
+  void BeginPassHook(unsigned int /*pass*/) override {
     psnr_ = 0.0;
     nframes_ = 0;
     decoded_nframes_ = 0;
@@ -68,13 +68,13 @@ class ErrorResilienceTestLarge
     mismatch_nframes_ = 0;
   }
 
-  virtual void PSNRPktHook(const aom_codec_cx_pkt_t *pkt) {
+  void PSNRPktHook(const aom_codec_cx_pkt_t *pkt) override {
     psnr_ += pkt->data.psnr.psnr[0];
     nframes_++;
   }
 
-  virtual void PreEncodeFrameHook(libaom_test::VideoSource *video,
-                                  libaom_test::Encoder *encoder) {
+  void PreEncodeFrameHook(libaom_test::VideoSource *video,
+                          libaom_test::Encoder *encoder) override {
     if (video->frame() == 0) {
       encoder->Control(AOME_SET_CPUUSED, kCpuUsed);
       encoder->Control(AOME_SET_ENABLEAUTOALTREF, enable_altref_);
@@ -146,7 +146,7 @@ class ErrorResilienceTestLarge
     }
   }
 
-  virtual void FramePktHook(const aom_codec_cx_pkt_t *pkt) {
+  void FramePktHook(const aom_codec_cx_pkt_t *pkt) override {
     // Check that the encode frame flags are correctly reflected
     // in the output frame flags.
     const int encode_flags = pkt->data.frame.flags >> 16;
@@ -154,16 +154,15 @@ class ErrorResilienceTestLarge
                          AOM_EFLAG_NO_UPD_ARF)) ==
         (AOM_EFLAG_NO_UPD_LAST | AOM_EFLAG_NO_UPD_GF | AOM_EFLAG_NO_UPD_ARF)) {
       ASSERT_EQ(pkt->data.frame.flags & AOM_FRAME_IS_DROPPABLE,
-                static_cast<aom_codec_frame_flags_t>(AOM_FRAME_IS_DROPPABLE));
+                AOM_FRAME_IS_DROPPABLE);
     }
     if (encode_flags & AOM_EFLAG_SET_S_FRAME) {
       ASSERT_EQ(pkt->data.frame.flags & AOM_FRAME_IS_SWITCH,
-                static_cast<aom_codec_frame_flags_t>(AOM_FRAME_IS_SWITCH));
+                AOM_FRAME_IS_SWITCH);
     }
     if (encode_flags & AOM_EFLAG_ERROR_RESILIENT) {
-      ASSERT_EQ(
-          pkt->data.frame.flags & AOM_FRAME_IS_ERROR_RESILIENT,
-          static_cast<aom_codec_frame_flags_t>(AOM_FRAME_IS_ERROR_RESILIENT));
+      ASSERT_EQ(pkt->data.frame.flags & AOM_FRAME_IS_ERROR_RESILIENT,
+                AOM_FRAME_IS_ERROR_RESILIENT);
     }
   }
 
@@ -177,21 +176,21 @@ class ErrorResilienceTestLarge
     return 0.0;
   }
 
-  virtual bool DoDecode() const {
+  bool DoDecode() const override {
     if (error_nframes_ > 0 &&
         (cfg_.g_pass == AOM_RC_LAST_PASS || cfg_.g_pass == AOM_RC_ONE_PASS)) {
       for (unsigned int i = 0; i < error_nframes_; ++i) {
         if (error_frames_[i] == nframes_ - 1) {
           std::cout << "             Skipping decoding frame: "
                     << error_frames_[i] << "\n";
-          return 0;
+          return false;
         }
       }
     }
-    return 1;
+    return true;
   }
 
-  virtual bool DoDecodeInvisible() const {
+  bool DoDecodeInvisible() const override {
     if (invisible_error_nframes_ > 0 &&
         (cfg_.g_pass == AOM_RC_LAST_PASS || cfg_.g_pass == AOM_RC_ONE_PASS)) {
       for (unsigned int i = 0; i < invisible_error_nframes_; ++i) {
@@ -199,14 +198,14 @@ class ErrorResilienceTestLarge
           std::cout << "             Skipping decoding all invisible frames in "
                        "frame pkt: "
                     << invisible_error_frames_[i] << "\n";
-          return 0;
+          return false;
         }
       }
     }
-    return 1;
+    return true;
   }
 
-  virtual void MismatchHook(const aom_image_t *img1, const aom_image_t *img2) {
+  void MismatchHook(const aom_image_t *img1, const aom_image_t *img2) override {
     if (allow_mismatch_) {
       double mismatch_psnr = compute_psnr(img1, img2);
       mismatch_psnr_ += mismatch_psnr;
@@ -217,8 +216,8 @@ class ErrorResilienceTestLarge
     }
   }
 
-  virtual void DecompressedFrameHook(const aom_image_t &img,
-                                     aom_codec_pts_t pts) {
+  void DecompressedFrameHook(const aom_image_t &img,
+                             aom_codec_pts_t pts) override {
     (void)img;
     (void)pts;
     ++decoded_nframes_;
@@ -463,89 +462,4 @@ TEST_P(ErrorResilienceTestLarge, SFrameTest) {
 
 AV1_INSTANTIATE_TEST_SUITE(ErrorResilienceTestLarge, NONREALTIME_TEST_MODES,
                            ::testing::Values(0, 1));
-
-// This class is used to check the presence of SFrame.
-class SFramePresenceTestLarge
-    : public ::libaom_test::CodecTestWith3Params<libaom_test::TestMode,
-                                                 aom_rc_mode, int>,
-      public ::libaom_test::EncoderTest {
- protected:
-  SFramePresenceTestLarge()
-      : EncoderTest(GET_PARAM(0)), encoding_mode_(GET_PARAM(1)),
-        rc_end_usage_(GET_PARAM(2)), enable_altref_(GET_PARAM(3)) {
-    is_sframe_present_ = 0;
-    is_sframe_position_violated_ = 0;
-  }
-  virtual ~SFramePresenceTestLarge() {}
-
-  virtual void SetUp() {
-    InitializeConfig(encoding_mode_);
-    const aom_rational timebase = { 1, 30 };
-    cfg_.g_timebase = timebase;
-    cfg_.rc_end_usage = rc_end_usage_;
-    cfg_.g_threads = 1;
-    cfg_.kf_min_dist = 0;
-    cfg_.kf_max_dist = 60;
-    cfg_.g_lag_in_frames = 35;
-    cfg_.sframe_dist = 5;
-    if (enable_altref_) cfg_.sframe_mode = 2;
-  }
-
-  virtual bool DoDecode() const { return 1; }
-
-  virtual void PreEncodeFrameHook(::libaom_test::VideoSource *video,
-                                  ::libaom_test::Encoder *encoder) {
-    if (video->frame() == 0) {
-      encoder->Control(AOME_SET_CPUUSED, 5);
-      encoder->Control(AOME_SET_ENABLEAUTOALTREF, enable_altref_);
-    }
-  }
-
-  virtual bool HandleDecodeResult(const aom_codec_err_t res_dec,
-                                  libaom_test::Decoder *decoder) {
-    EXPECT_EQ(AOM_CODEC_OK, res_dec) << decoder->DecodeError();
-    if (AOM_CODEC_OK == res_dec) {
-      aom_codec_ctx_t *ctx_dec = decoder->GetDecoder();
-      AOM_CODEC_CONTROL_TYPECHECKED(ctx_dec, AOMD_GET_S_FRAME_INFO,
-                                    &sframe_info);
-      if (sframe_info.is_s_frame) {
-        is_sframe_present_ = 1;
-        if (enable_altref_ && is_sframe_position_violated_ == 0 &&
-            sframe_info.is_s_frame_at_altref == 0)
-          is_sframe_position_violated_ = 1;
-      }
-    }
-    return AOM_CODEC_OK == res_dec;
-  }
-
-  ::libaom_test::TestMode encoding_mode_;
-  aom_rc_mode rc_end_usage_;
-  int is_sframe_present_;
-  int is_sframe_position_violated_;
-  int enable_altref_;
-  aom_s_frame_info sframe_info;
-};
-
-// TODO(http://crbug.com/aomedia/2831): Disable the S frame unit test for frame
-// scheduling re-design.
-TEST_P(SFramePresenceTestLarge, DISABLED_SFramePresenceTest) {
-  libaom_test::I420VideoSource video("hantro_collage_w352h288.yuv", 352, 288,
-                                     cfg_.g_timebase.den, cfg_.g_timebase.num,
-                                     0, 100);
-  ASSERT_NO_FATAL_FAILURE(RunLoop(&video));
-  ASSERT_EQ(is_sframe_present_, 1);
-  if (enable_altref_) {
-    ASSERT_EQ(is_sframe_position_violated_, 0);
-  }
-}
-
-/* TODO(anyone): Currently SFramePresenceTest fails when enable_altref_ = 1.
- * Hence this configuration is not added. Add this configuration after the
- * bug is fixed.
- */
-AV1_INSTANTIATE_TEST_SUITE(SFramePresenceTestLarge,
-                           ::testing::Values(::libaom_test::kOnePassGood,
-                                             ::libaom_test::kTwoPassGood),
-                           ::testing::Values(AOM_Q, AOM_VBR, AOM_CBR, AOM_CQ),
-                           ::testing::Values(0));
 }  // namespace

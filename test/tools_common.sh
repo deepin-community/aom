@@ -228,6 +228,12 @@ aomenc_encode_test_rt_params() {
 }
 
 # Echoes yes to stdout when aom_config_option_enabled() reports yes for
+# CONFIG_AV1_HIGHBITDEPTH.
+highbitdepth_available() {
+  [ "$(aom_config_option_enabled CONFIG_AV1_HIGHBITDEPTH)" = "yes" ] && echo yes
+}
+
+# Echoes yes to stdout when aom_config_option_enabled() reports yes for
 # CONFIG_WEBM_IO.
 webm_io_available() {
   [ "$(aom_config_option_enabled CONFIG_WEBM_IO)" = "yes" ] && echo yes
@@ -306,7 +312,11 @@ run_tests() {
   # Combine environment and actual tests.
   local tests_to_run="${env_tests} ${tests_to_filter}"
 
-  check_version_strings
+  # av1_c_vs_simd_encode is a standalone test, and it doesn't need to check the
+  # version string.
+  if [ "${test_name}" != "av1_c_vs_simd_encode" ]; then
+    check_version_strings
+  fi
 
   # Run tests.
   for test in ${tests_to_run}; do
@@ -458,6 +468,8 @@ fi
 
 AOM_TEST_PRESERVE_OUTPUT=${AOM_TEST_PRESERVE_OUTPUT:-no}
 
+# This checking requires config/aom_config.c that is available in Jenkins
+# testing.
 if [ "$(is_windows_target)" = "yes" ]; then
   AOM_TEST_EXE_SUFFIX=".exe"
 fi

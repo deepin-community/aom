@@ -19,16 +19,16 @@ README.md                {#LREADME}
     - [Build with VMAF support](#build-with-vmaf)
 2. [Testing the library](#testing-the-av1-codec)
     - [Basics](#testing-basics)
-        - [Unit tests](#1_unit-tests)
-        - [Example tests](#2_example-tests)
-        - [Encoder tests](#3_encoder-tests)
+        - [Unit tests](#unit-tests)
+        - [Example tests](#example-tests)
+        - [Encoder tests](#encoder-tests)
     - [IDE hosted tests](#ide-hosted-tests)
     - [Downloading test data](#downloading-the-test-data)
     - [Adding a new test data file](#adding-a-new-test-data-file)
     - [Additional test data](#additional-test-data)
     - [Sharded testing](#sharded-testing)
-        - [Running tests directly](#1_running-test_libaom-directly)
-        - [Running tests via CMake](#2_running-the-tests-via-the-cmake-build)
+        - [Running tests directly](#running-test_libaom-directly)
+        - [Running tests via CMake](#running-the-tests-via-the-cmake-build)
 3. [Coding style](#coding-style)
 4. [Submitting patches](#submitting-patches)
     - [Login cookie](#login-cookie)
@@ -46,17 +46,23 @@ README.md                {#LREADME}
 
 ### Prerequisites {#prerequisites}
 
- 1. [CMake](https://cmake.org) version 3.6 or higher.
- 2. [Git](https://git-scm.com/).
- 3. [Perl](https://www.perl.org/).
- 4. For x86 targets, [yasm](http://yasm.tortall.net/), which is preferred, or a
-    recent version of [nasm](http://www.nasm.us/). If you download yasm with
-    the intention to work with Visual Studio, please download win32.exe or
-    win64.exe and rename it into yasm.exe. DO NOT download or use vsyasm.exe.
- 5. Building the documentation requires
+1. [CMake](https://cmake.org). See CMakeLists.txt for the minimum version
+   required.
+2. [Git](https://git-scm.com/).
+3. A modern C compiler. gcc 6+, clang 7+, Microsoft Visual Studio 2019+ or
+   the latest version of MinGW-w64 (clang64 or ucrt toolchains) are
+   recommended. A C++ compiler is necessary to build the unit tests and some
+   features contained in the examples.
+4. [Perl](https://www.perl.org/).
+5. For x86 targets, [yasm](http://yasm.tortall.net/) or a recent version (2.14
+   or later) of [nasm](http://www.nasm.us/). (If both yasm and nasm are
+   present, yasm will be used by default. Pass -DENABLE_NASM=ON to cmake to
+   select nasm.) If you download yasm with the intention to work with Visual
+   Studio, please download win32.exe or win64.exe and rename it into yasm.exe.
+   DO NOT download or use vsyasm.exe.
+6. Building the documentation requires
    [doxygen version 1.8.10 or newer](http://doxygen.org).
- 6. Building the unit tests requires [Python](https://www.python.org/).
- 7. Emscripten builds require the portable
+7. Emscripten builds require the portable
    [EMSDK](https://kripken.github.io/emscripten-site/index.html).
 
 ### Get the code {#get-the-code}
@@ -159,14 +165,15 @@ cross compiling via the use of toolchain files included in the AV1 repository.
 The toolchain files available at the time of this writing are:
 
  - arm64-ios.cmake
+ - arm64-linux-clang.cmake
  - arm64-linux-gcc.cmake
  - arm64-mingw-gcc.cmake
  - armv7-ios.cmake
  - armv7-linux-gcc.cmake
  - armv7-mingw-gcc.cmake
  - armv7s-ios.cmake
- - mips32-linux-gcc.cmake
- - mips64-linux-gcc.cmake
+ - ppc-linux-gcc.cmake
+ - riscv-linux-gcc.cmake
  - x86-ios-simulator.cmake
  - x86-linux.cmake
  - x86-macos.cmake
@@ -217,27 +224,26 @@ compiler documentation to determine which, if any, are available.
 ### Microsoft Visual Studio builds {#microsoft-visual-studio-builds}
 
 Building the AV1 codec library in Microsoft Visual Studio is supported. Visual
-Studio 2017 (15.0) or later is required. The following example demonstrates
+Studio 2019 (16.0) or later is required. The following example demonstrates
 generating projects and a solution for the Microsoft IDE:
 
 ~~~
     # This does not require a bash shell; Command Prompt (cmd.exe) is fine.
     # This assumes the build host is a Windows x64 computer.
 
-    # To build with Visual Studio 2019 for the x64 target:
+    # To create a Visual Studio 2022 solution for the x64 target:
+    $ cmake path/to/aom -G "Visual Studio 17 2022"
+
+    # To create a Visual Studio 2022 solution for the 32-bit x86 target:
+    $ cmake path/to/aom -G "Visual Studio 17 2022" -A Win32
+
+    # To create a Visual Studio 2019 solution for the x64 target:
     $ cmake path/to/aom -G "Visual Studio 16 2019"
-    $ cmake --build .
 
-    # To build with Visual Studio 2019 for the 32-bit x86 target:
+    # To create a Visual Studio 2019 solution for the 32-bit x86 target:
     $ cmake path/to/aom -G "Visual Studio 16 2019" -A Win32
-    $ cmake --build .
 
-    # To build with Visual Studio 2017 for the x64 target:
-    $ cmake path/to/aom -G "Visual Studio 15 2017" -T host=x64 -A x64
-    $ cmake --build .
-
-    # To build with Visual Studio 2017 for the 32-bit x86 target:
-    $ cmake path/to/aom -G "Visual Studio 15 2017" -T host=x64
+    # To build the solution:
     $ cmake --build .
 ~~~
 
@@ -264,7 +270,7 @@ It is assumed here that you have already downloaded and installed the EMSDK,
 installed and activated at least one toolchain, and setup your environment
 appropriately using the emsdk\_env script.
 
-1. Download [AOMAnalyzer](https://people.xiph.org/~mbebenita/analyzer/).
+1. Build [AOM Analyzer](https://github.com/xiph/aomanalyzer).
 
 2. Configure the build:
 
@@ -341,7 +347,7 @@ There are several methods of testing the AV1 codec. All of these methods require
 the presence of the AV1 source code and a working build of the AV1 library and
 applications.
 
-#### 1. Unit tests: {#1_unit-tests}
+#### 1. Unit tests: {#unit-tests}
 
 The unit tests can be run at build time:
 
@@ -355,7 +361,7 @@ The unit tests can be run at build time:
     $ make runtests
 ~~~
 
-#### 2. Example tests: {#2_example-tests}
+#### 2. Example tests: {#example-tests}
 
 The example tests require a bash shell and can be run in the following manner:
 
@@ -370,7 +376,7 @@ The example tests require a bash shell and can be run in the following manner:
     $ path/to/aom/test/examples.sh --bin-path examples
 ~~~
 
-#### 3. Encoder tests: {#3_encoder-tests}
+#### 3. Encoder tests: {#encoder-tests}
 
 When making a change to the encoder run encoder tests to confirm that your
 change has a positive or negligible impact on encode quality. When running these
@@ -487,7 +493,7 @@ https://media.xiph.org/video/derf/
 The AV1 codec library unit tests are built upon gtest which supports sharding of
 test jobs. Sharded test runs can be achieved in a couple of ways.
 
-#### 1. Running test\_libaom directly: {#1_running-test_libaom-directly}
+#### 1. Running test\_libaom directly: {#running-test_libaom-directly}
 
 ~~~
    # Set the environment variable GTEST_TOTAL_SHARDS to control the number of
@@ -501,7 +507,7 @@ test jobs. Sharded test runs can be achieved in a couple of ways.
 To create a test shard for each CPU core available on the current system set
 `GTEST_TOTAL_SHARDS` to the number of CPU cores on your system minus one.
 
-#### 2. Running the tests via the CMake build: {#2_running-the-tests-via-the-cmake-build}
+#### 2. Running the tests via the CMake build: {#running-the-tests-via-the-cmake-build}
 
 ~~~
     # For IDE based builds, ENABLE_IDE_TEST_HOSTING must be enabled. See
@@ -527,7 +533,7 @@ We are using the Google C Coding Style defined by the
 
 The coding style used by this project is enforced with clang-format using the
 configuration contained in the
-[.clang-format](https://chromium.googlesource.com/webm/aom/+/master/.clang-format)
+[.clang-format](https://chromium.googlesource.com/webm/aom/+/main/.clang-format)
 file in the root of the repository.
 
 You can download clang-format using your system's package manager, or directly
@@ -575,11 +581,18 @@ your account (Gmail credentials, for example). Next, follow the
 `Generate Password` Password link at the top of the page. You’ll be given
 instructions for creating a cookie to use with our Git repos.
 
+You must also have a Gerrit account associated with your Google account. To do
+this visit the [Gerrit review server](https://aomedia-review.googlesource.com)
+and click "Sign in" (top right).
+
 ### Contributor agreement {#contributor-agreement}
 
 You will be required to execute a
 [contributor agreement](http://aomedia.org/license) to ensure that the AOMedia
 Project has the right to distribute your changes.
+
+Note: If you are pushing changes on behalf of an Alliance for Open Media member
+organization this step is not necessary.
 
 ### Testing your code {#testing-your-code}
 
@@ -614,7 +627,7 @@ for more information.
 The command line to upload your patch looks like this:
 
 ~~~
-    $ git push https://aomedia-review.googlesource.com/aom HEAD:refs/for/master
+    $ git push https://aomedia-review.googlesource.com/aom HEAD:refs/for/main
 ~~~
 
 ### Incorporating reviewer comments {#incorporating-reviewer-comments}

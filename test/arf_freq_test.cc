@@ -71,14 +71,6 @@ const int kMinArfVectors[] = {
   0, 4, 8, 12, 15
 };
 
-int is_extension_y4m(const char *filename) {
-  const char *dot = strrchr(filename, '.');
-  if (!dot || dot == filename)
-    return 0;
-  else
-    return !strcmp(dot, ".y4m");
-}
-
 class ArfFreqTestLarge
     : public ::libaom_test::CodecTestWith3Params<TestVideoParam,
                                                  TestEncodeParam, int>,
@@ -88,9 +80,9 @@ class ArfFreqTestLarge
       : EncoderTest(GET_PARAM(0)), test_video_param_(GET_PARAM(1)),
         test_encode_param_(GET_PARAM(2)), min_arf_requested_(GET_PARAM(3)) {}
 
-  virtual ~ArfFreqTestLarge() {}
+  ~ArfFreqTestLarge() override = default;
 
-  virtual void SetUp() {
+  void SetUp() override {
     InitializeConfig(test_encode_param_.mode);
     if (test_encode_param_.mode != ::libaom_test::kRealTime) {
       cfg_.g_lag_in_frames = 25;
@@ -101,7 +93,7 @@ class ArfFreqTestLarge
     }
   }
 
-  virtual void BeginPassHook(unsigned int) {
+  void BeginPassHook(unsigned int) override {
     min_run_ = ARF_NOT_SEEN;
     run_of_visible_frames_ = 0;
   }
@@ -123,7 +115,7 @@ class ArfFreqTestLarge
     return frames;
   }
 
-  virtual void FramePktHook(const aom_codec_cx_pkt_t *pkt) {
+  void FramePktHook(const aom_codec_cx_pkt_t *pkt) override {
     if (pkt->kind != AOM_CODEC_CX_FRAME_PKT) return;
     const int frames = GetNumFramesInPkt(pkt);
     if (frames == 1) {
@@ -142,8 +134,8 @@ class ArfFreqTestLarge
     }
   }
 
-  virtual void PreEncodeFrameHook(::libaom_test::VideoSource *video,
-                                  ::libaom_test::Encoder *encoder) {
+  void PreEncodeFrameHook(::libaom_test::VideoSource *video,
+                          ::libaom_test::Encoder *encoder) override {
     if (video->frame() == 0) {
       encoder->Control(AV1E_SET_FRAME_PARALLEL_DECODING, 1);
       encoder->Control(AV1E_SET_TILE_COLUMNS, 4);
@@ -198,6 +190,7 @@ TEST_P(ArfFreqTestLarge, MinArfFreqTest) {
         test_video_param_.framerate_num, test_video_param_.framerate_den, 0,
         kFrames));
   }
+  ASSERT_NE(video, nullptr);
 
   ASSERT_NO_FATAL_FAILURE(RunLoop(video.get()));
   const int min_run = GetMinVisibleRun();

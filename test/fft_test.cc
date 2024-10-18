@@ -82,21 +82,25 @@ struct FFTTestArg {
 };
 
 std::ostream &operator<<(std::ostream &os, const FFTTestArg &test_arg) {
-  return os << "fft_arg { n:" << test_arg.n << " fft:" << test_arg.fft << " }";
+  return os << "fft_arg { n:" << test_arg.n
+            << " fft:" << reinterpret_cast<const void *>(test_arg.fft) << " }";
 }
 
 class FFT2DTest : public ::testing::TestWithParam<FFTTestArg> {
  protected:
-  void SetUp() {
+  void SetUp() override {
     int n = GetParam().n;
     input_ = (float *)aom_memalign(32, sizeof(*input_) * n * n);
     temp_ = (float *)aom_memalign(32, sizeof(*temp_) * n * n);
     output_ = (float *)aom_memalign(32, sizeof(*output_) * n * n * 2);
+    ASSERT_NE(input_, nullptr);
+    ASSERT_NE(temp_, nullptr);
+    ASSERT_NE(output_, nullptr);
     memset(input_, 0, sizeof(*input_) * n * n);
     memset(temp_, 0, sizeof(*temp_) * n * n);
     memset(output_, 0, sizeof(*output_) * n * n * 2);
   }
-  void TearDown() {
+  void TearDown() override {
     aom_free(input_);
     aom_free(temp_);
     aom_free(output_);
@@ -143,7 +147,7 @@ INSTANTIATE_TEST_SUITE_P(C, FFT2DTest,
                                            FFTTestArg(16, aom_fft16x16_float_c),
                                            FFTTestArg(32,
                                                       aom_fft32x32_float_c)));
-#if ARCH_X86 || ARCH_X86_64
+#if AOM_ARCH_X86 || AOM_ARCH_X86_64
 #if HAVE_SSE2
 INSTANTIATE_TEST_SUITE_P(
     SSE2, FFT2DTest,
@@ -159,7 +163,7 @@ INSTANTIATE_TEST_SUITE_P(
                       FFTTestArg(16, aom_fft16x16_float_avx2),
                       FFTTestArg(32, aom_fft32x32_float_avx2)));
 #endif  // HAVE_AVX2
-#endif  // ARCH_X86 || ARCH_X86_64
+#endif  // AOM_ARCH_X86 || AOM_ARCH_X86_64
 
 struct IFFTTestArg {
   int n;
@@ -168,22 +172,25 @@ struct IFFTTestArg {
 };
 
 std::ostream &operator<<(std::ostream &os, const IFFTTestArg &test_arg) {
-  return os << "ifft_arg { n:" << test_arg.n << " fft:" << test_arg.ifft
-            << " }";
+  return os << "ifft_arg { n:" << test_arg.n
+            << " fft:" << reinterpret_cast<const void *>(test_arg.ifft) << " }";
 }
 
 class IFFT2DTest : public ::testing::TestWithParam<IFFTTestArg> {
  protected:
-  void SetUp() {
+  void SetUp() override {
     int n = GetParam().n;
     input_ = (float *)aom_memalign(32, sizeof(*input_) * n * n * 2);
     temp_ = (float *)aom_memalign(32, sizeof(*temp_) * n * n * 2);
     output_ = (float *)aom_memalign(32, sizeof(*output_) * n * n);
+    ASSERT_NE(input_, nullptr);
+    ASSERT_NE(temp_, nullptr);
+    ASSERT_NE(output_, nullptr);
     memset(input_, 0, sizeof(*input_) * n * n * 2);
     memset(temp_, 0, sizeof(*temp_) * n * n * 2);
     memset(output_, 0, sizeof(*output_) * n * n);
   }
-  void TearDown() {
+  void TearDown() override {
     aom_free(input_);
     aom_free(temp_);
     aom_free(output_);
@@ -218,7 +225,7 @@ TEST_P(IFFT2DTest, Correctness) {
       expected[y * n + x] = 0;
     }
   }
-};
+}
 
 TEST_P(IFFT2DTest, Benchmark) {
   int n = GetParam().n;
@@ -239,7 +246,7 @@ INSTANTIATE_TEST_SUITE_P(
                       IFFTTestArg(8, aom_ifft8x8_float_c),
                       IFFTTestArg(16, aom_ifft16x16_float_c),
                       IFFTTestArg(32, aom_ifft32x32_float_c)));
-#if ARCH_X86 || ARCH_X86_64
+#if AOM_ARCH_X86 || AOM_ARCH_X86_64
 #if HAVE_SSE2
 INSTANTIATE_TEST_SUITE_P(
     SSE2, IFFT2DTest,
@@ -256,6 +263,6 @@ INSTANTIATE_TEST_SUITE_P(
                       IFFTTestArg(16, aom_ifft16x16_float_avx2),
                       IFFTTestArg(32, aom_ifft32x32_float_avx2)));
 #endif  // HAVE_AVX2
-#endif  // ARCH_X86 || ARCH_X86_64
+#endif  // AOM_ARCH_X86 || AOM_ARCH_X86_64
 
 }  // namespace

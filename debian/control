@@ -1,19 +1,24 @@
 Source: aom
 Section: video
 Priority: optional
-Maintainer: Deepin Developer <deepin-dev@deepin.org>
-Uploaders: Deepin Packages Builder <packages@deepin.org>
+Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
+Uploaders: James Cowgill <jcowgill@debian.org>
 Build-Depends:
- cmake (>= 3.5),
- debhelper-compat (= 12),
+ cmake (>= 3.6),
+ debhelper-compat (= 13),
+ libyuv-dev,
+ libwebm-dev (>= 1.0.0.30-2~),
+ pkgconf,
  yasm [any-amd64 any-i386],
+ ffmpeg <!nocheck>,
+ bc <!nocheck>,
 Build-Depends-Indep:
  doxygen,
 Rules-Requires-Root: no
-Standards-Version: 4.6.0
-Homepage: https://aomedia.org/
-#Vcs-Git
-#Vcs-Browser
+Standards-Version: 4.6.2
+Homepage: https://aomedia.googlesource.com/aom/
+Vcs-Git: https://salsa.debian.org/multimedia-team/aom.git
+Vcs-Browser: https://salsa.debian.org/multimedia-team/aom
 
 Package: aom-tools
 Architecture: any

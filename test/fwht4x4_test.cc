@@ -67,9 +67,9 @@ void iwht4x4_12_sse4_1(const tran_low_t *in, uint8_t *out, int stride) {
 class Trans4x4WHT : public libaom_test::TransformTestBase<tran_low_t>,
                     public ::testing::TestWithParam<Dct4x4Param> {
  public:
-  virtual ~Trans4x4WHT() {}
+  ~Trans4x4WHT() override = default;
 
-  virtual void SetUp() {
+  void SetUp() override {
     fwd_txfm_ = GET_PARAM(0);
     inv_txfm_ = GET_PARAM(1);
     pitch_ = 4;
@@ -80,13 +80,12 @@ class Trans4x4WHT : public libaom_test::TransformTestBase<tran_low_t>,
     num_coeffs_ = GET_PARAM(4);
     fwd_txfm_c_ = GET_PARAM(5);
   }
-  virtual void TearDown() {}
 
  protected:
-  void RunFwdTxfm(const int16_t *in, tran_low_t *out, int stride) {
+  void RunFwdTxfm(const int16_t *in, tran_low_t *out, int stride) override {
     fwd_txfm_(in, out, stride);
   }
-  void RunInvTxfm(const tran_low_t *out, uint8_t *dst, int stride) {
+  void RunInvTxfm(const tran_low_t *out, uint8_t *dst, int stride) override {
     inv_txfm_(out, dst, stride);
   }
   void RunSpeedTest() {
@@ -104,15 +103,17 @@ class Trans4x4WHT : public libaom_test::TransformTestBase<tran_low_t>,
 
       int16_t *input_block = reinterpret_cast<int16_t *>(
           aom_memalign(16, sizeof(int16_t) * stride * height_));
+      ASSERT_NE(input_block, nullptr);
       tran_low_t *output_ref_block = reinterpret_cast<tran_low_t *>(
           aom_memalign(16, sizeof(output_ref_block[0]) * num_coeffs_));
+      ASSERT_NE(output_ref_block, nullptr);
       tran_low_t *output_block = reinterpret_cast<tran_low_t *>(
           aom_memalign(16, sizeof(output_block[0]) * num_coeffs_));
+      ASSERT_NE(output_block, nullptr);
 
       for (int i = 0; i < count_test_block; ++i) {
-        int j, k;
-        for (j = 0; j < height_; ++j) {
-          for (k = 0; k < pitch_; ++k) {
+        for (int j = 0; j < height_; ++j) {
+          for (int k = 0; k < pitch_; ++k) {
             int in_idx = j * stride + k;
             int out_idx = j * pitch_ + k;
             input_block[in_idx] =
@@ -128,7 +129,7 @@ class Trans4x4WHT : public libaom_test::TransformTestBase<tran_low_t>,
 
         aom_usec_timer c_timer_;
         aom_usec_timer_start(&c_timer_);
-        for (int i = 0; i < numIter; i++) {
+        for (int iter = 0; iter < numIter; iter++) {
           API_REGISTER_STATE_CHECK(
               fwd_txfm_c_(input_block, output_ref_block, stride));
         }
@@ -137,7 +138,7 @@ class Trans4x4WHT : public libaom_test::TransformTestBase<tran_low_t>,
         aom_usec_timer simd_timer_;
         aom_usec_timer_start(&simd_timer_);
 
-        for (int i = 0; i < numIter; i++) {
+        for (int iter = 0; iter < numIter; iter++) {
           API_REGISTER_STATE_CHECK(
               fwd_txfm_(input_block, output_block, stride));
         }
@@ -147,8 +148,8 @@ class Trans4x4WHT : public libaom_test::TransformTestBase<tran_low_t>,
         simd_sum_time += static_cast<int>(aom_usec_timer_elapsed(&simd_timer_));
 
         // The minimum quant value is 4.
-        for (j = 0; j < height_; ++j) {
-          for (k = 0; k < pitch_; ++k) {
+        for (int j = 0; j < height_; ++j) {
+          for (int k = 0; k < pitch_; ++k) {
             int out_idx = j * pitch_ + k;
             ASSERT_EQ(output_block[out_idx], output_ref_block[out_idx])
                 << "Error: not bit-exact result at index: " << out_idx
@@ -188,22 +189,23 @@ using std::make_tuple;
 
 INSTANTIATE_TEST_SUITE_P(
     C, Trans4x4WHT,
-    ::testing::Values(make_tuple(&av1_highbd_fwht4x4_c, &iwht4x4_10_c, DCT_DCT,
-                                 AOM_BITS_10, 16, static_cast<FdctFunc>(NULL)),
-                      make_tuple(&av1_highbd_fwht4x4_c, &iwht4x4_12_c, DCT_DCT,
+    ::testing::Values(make_tuple(&av1_fwht4x4_c, &iwht4x4_10_c, DCT_DCT,
+                                 AOM_BITS_10, 16,
+                                 static_cast<FdctFunc>(nullptr)),
+                      make_tuple(&av1_fwht4x4_c, &iwht4x4_12_c, DCT_DCT,
                                  AOM_BITS_12, 16,
-                                 static_cast<FdctFunc>(NULL))));
+                                 static_cast<FdctFunc>(nullptr))));
 
 #if HAVE_SSE4_1
 
 INSTANTIATE_TEST_SUITE_P(
     SSE4_1, Trans4x4WHT,
-    ::testing::Values(make_tuple(&av1_highbd_fwht4x4_sse4_1, &iwht4x4_10_sse4_1,
+    ::testing::Values(make_tuple(&av1_fwht4x4_sse4_1, &iwht4x4_10_sse4_1,
                                  DCT_DCT, AOM_BITS_10, 16,
-                                 static_cast<FdctFunc>(NULL)),
-                      make_tuple(&av1_highbd_fwht4x4_sse4_1, &iwht4x4_12_sse4_1,
+                                 static_cast<FdctFunc>(nullptr)),
+                      make_tuple(&av1_fwht4x4_sse4_1, &iwht4x4_12_sse4_1,
                                  DCT_DCT, AOM_BITS_12, 16,
-                                 static_cast<FdctFunc>(NULL))));
+                                 static_cast<FdctFunc>(nullptr))));
 
 #endif  // HAVE_SSE4_1
 
@@ -211,12 +213,10 @@ INSTANTIATE_TEST_SUITE_P(
 
 INSTANTIATE_TEST_SUITE_P(
     NEON, Trans4x4WHT,
-    ::testing::Values(make_tuple(&av1_highbd_fwht4x4_neon, &iwht4x4_10_c,
-                                 DCT_DCT, AOM_BITS_10, 16,
-                                 &av1_highbd_fwht4x4_c),
-                      make_tuple(&av1_highbd_fwht4x4_neon, &iwht4x4_12_c,
-                                 DCT_DCT, AOM_BITS_12, 16,
-                                 &av1_highbd_fwht4x4_c)));
+    ::testing::Values(make_tuple(&av1_fwht4x4_neon, &iwht4x4_10_c, DCT_DCT,
+                                 AOM_BITS_10, 16, &av1_fwht4x4_c),
+                      make_tuple(&av1_fwht4x4_neon, &iwht4x4_12_c, DCT_DCT,
+                                 AOM_BITS_12, 16, &av1_fwht4x4_c)));
 
 #endif  // HAVE_NEON
 

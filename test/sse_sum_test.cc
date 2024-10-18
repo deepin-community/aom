@@ -41,15 +41,15 @@ typedef libaom_test::FuncParam<SSI16Func> TestFuncs;
 
 class SumSSETest : public ::testing::TestWithParam<TestFuncs> {
  public:
-  virtual ~SumSSETest() {}
-  virtual void SetUp() {
+  ~SumSSETest() override = default;
+  void SetUp() override {
     params_ = this->GetParam();
     rnd_.Reset(ACMRandom::DeterministicSeed());
     src_ = reinterpret_cast<int16_t *>(aom_memalign(16, 256 * 256 * 2));
-    ASSERT_TRUE(src_ != NULL);
+    ASSERT_NE(src_, nullptr);
   }
 
-  virtual void TearDown() { aom_free(src_); }
+  void TearDown() override { aom_free(src_); }
   void RunTest(int isRandom);
   void RunSpeedTest();
 
@@ -160,10 +160,23 @@ INSTANTIATE_TEST_SUITE_P(SSE2, SumSSETest,
                              &aom_sum_sse_2d_i16_c, &aom_sum_sse_2d_i16_sse2)));
 
 #endif  // HAVE_SSE2
+
+#if HAVE_NEON
+INSTANTIATE_TEST_SUITE_P(NEON, SumSSETest,
+                         ::testing::Values(TestFuncs(
+                             &aom_sum_sse_2d_i16_c, &aom_sum_sse_2d_i16_neon)));
+#endif  // HAVE_NEON
+
 #if HAVE_AVX2
 INSTANTIATE_TEST_SUITE_P(AVX2, SumSSETest,
                          ::testing::Values(TestFuncs(
                              &aom_sum_sse_2d_i16_c, &aom_sum_sse_2d_i16_avx2)));
 #endif  // HAVE_AVX2
+
+#if HAVE_SVE
+INSTANTIATE_TEST_SUITE_P(SVE, SumSSETest,
+                         ::testing::Values(TestFuncs(&aom_sum_sse_2d_i16_c,
+                                                     &aom_sum_sse_2d_i16_sve)));
+#endif  // HAVE_SVE
 
 }  // namespace
