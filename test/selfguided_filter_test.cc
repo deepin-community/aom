@@ -30,9 +30,9 @@ using libaom_test::ACMRandom;
 using std::make_tuple;
 using std::tuple;
 
-typedef void (*SgrFunc)(const uint8_t *dat8, int width, int height, int stride,
-                        int eps, const int *xqd, uint8_t *dst8, int dst_stride,
-                        int32_t *tmpbuf, int bit_depth, int highbd);
+typedef int (*SgrFunc)(const uint8_t *dat8, int width, int height, int stride,
+                       int eps, const int *xqd, uint8_t *dst8, int dst_stride,
+                       int32_t *tmpbuf, int bit_depth, int highbd);
 
 // Test parameter list:
 //  <tst_fun_>
@@ -41,10 +41,8 @@ typedef tuple<SgrFunc> FilterTestParam;
 class AV1SelfguidedFilterTest
     : public ::testing::TestWithParam<FilterTestParam> {
  public:
-  virtual ~AV1SelfguidedFilterTest() {}
-  virtual void SetUp() {}
-
-  virtual void TearDown() {}
+  ~AV1SelfguidedFilterTest() override = default;
+  void SetUp() override {}
 
  protected:
   void RunSpeedTest() {
@@ -57,9 +55,12 @@ class AV1SelfguidedFilterTest
 
     uint8_t *input_ =
         (uint8_t *)aom_memalign(32, stride * (height + 32) * sizeof(uint8_t));
+    ASSERT_NE(input_, nullptr);
     uint8_t *output_ = (uint8_t *)aom_memalign(
         32, out_stride * (height + 32) * sizeof(uint8_t));
+    ASSERT_NE(output_, nullptr);
     int32_t *tmpbuf = (int32_t *)aom_memalign(32, RESTORATION_TMPBUF_SIZE);
+    ASSERT_NE(tmpbuf, nullptr);
     uint8_t *input = input_ + stride * 16 + 16;
     uint8_t *output = output_ + out_stride * 16 + 16;
 
@@ -88,9 +89,10 @@ class AV1SelfguidedFilterTest
           int h = AOMMIN(pu_height, height - k);
           uint8_t *input_p = input + k * stride + j;
           uint8_t *output_p = output + k * out_stride + j;
-          av1_apply_selfguided_restoration_c(input_p, w, h, stride, eps, xqd,
-                                             output_p, out_stride, tmpbuf, 8,
-                                             0);
+          const int ret_c = av1_apply_selfguided_restoration_c(
+              input_p, w, h, stride, eps, xqd, output_p, out_stride, tmpbuf, 8,
+              0);
+          ASSERT_EQ(ret_c, 0);
         }
     }
     aom_usec_timer_mark(&ref_timer);
@@ -105,8 +107,9 @@ class AV1SelfguidedFilterTest
           int h = AOMMIN(pu_height, height - k);
           uint8_t *input_p = input + k * stride + j;
           uint8_t *output_p = output + k * out_stride + j;
-          tst_fun_(input_p, w, h, stride, eps, xqd, output_p, out_stride,
-                   tmpbuf, 8, 0);
+          const int ret_tst = tst_fun_(input_p, w, h, stride, eps, xqd,
+                                       output_p, out_stride, tmpbuf, 8, 0);
+          ASSERT_EQ(ret_tst, 0);
         }
     }
     aom_usec_timer_mark(&tst_timer);
@@ -138,11 +141,15 @@ class AV1SelfguidedFilterTest
 
     uint8_t *input_ =
         (uint8_t *)aom_memalign(32, stride * (max_h + 32) * sizeof(uint8_t));
+    ASSERT_NE(input_, nullptr);
     uint8_t *output_ = (uint8_t *)aom_memalign(
         32, out_stride * (max_h + 32) * sizeof(uint8_t));
+    ASSERT_NE(output_, nullptr);
     uint8_t *output2_ = (uint8_t *)aom_memalign(
         32, out_stride * (max_h + 32) * sizeof(uint8_t));
+    ASSERT_NE(output2_, nullptr);
     int32_t *tmpbuf = (int32_t *)aom_memalign(32, RESTORATION_TMPBUF_SIZE);
+    ASSERT_NE(tmpbuf, nullptr);
 
     uint8_t *input = input_ + stride * 16 + 16;
     uint8_t *output = output_ + out_stride * 16 + 16;
@@ -174,11 +181,13 @@ class AV1SelfguidedFilterTest
           uint8_t *input_p = input + k * stride + j;
           uint8_t *output_p = output + k * out_stride + j;
           uint8_t *output2_p = output2 + k * out_stride + j;
-          tst_fun_(input_p, w, h, stride, eps, xqd, output_p, out_stride,
-                   tmpbuf, 8, 0);
-          av1_apply_selfguided_restoration_c(input_p, w, h, stride, eps, xqd,
-                                             output2_p, out_stride, tmpbuf, 8,
-                                             0);
+          const int ret_tst = tst_fun_(input_p, w, h, stride, eps, xqd,
+                                       output_p, out_stride, tmpbuf, 8, 0);
+          ASSERT_EQ(ret_tst, 0);
+          const int ret_c = av1_apply_selfguided_restoration_c(
+              input_p, w, h, stride, eps, xqd, output2_p, out_stride, tmpbuf, 8,
+              0);
+          ASSERT_EQ(ret_c, 0);
         }
 
       for (j = 0; j < test_h; ++j)
@@ -227,10 +236,8 @@ typedef tuple<SgrFunc, int> HighbdFilterTestParam;
 class AV1HighbdSelfguidedFilterTest
     : public ::testing::TestWithParam<HighbdFilterTestParam> {
  public:
-  virtual ~AV1HighbdSelfguidedFilterTest() {}
-  virtual void SetUp() {}
-
-  virtual void TearDown() {}
+  ~AV1HighbdSelfguidedFilterTest() override = default;
+  void SetUp() override {}
 
  protected:
   void RunSpeedTest() {
@@ -245,9 +252,12 @@ class AV1HighbdSelfguidedFilterTest
 
     uint16_t *input_ =
         (uint16_t *)aom_memalign(32, stride * (height + 32) * sizeof(uint16_t));
+    ASSERT_NE(input_, nullptr);
     uint16_t *output_ = (uint16_t *)aom_memalign(
         32, out_stride * (height + 32) * sizeof(uint16_t));
+    ASSERT_NE(output_, nullptr);
     int32_t *tmpbuf = (int32_t *)aom_memalign(32, RESTORATION_TMPBUF_SIZE);
+    ASSERT_NE(tmpbuf, nullptr);
     uint16_t *input = input_ + stride * 16 + 16;
     uint16_t *output = output_ + out_stride * 16 + 16;
 
@@ -330,11 +340,15 @@ class AV1HighbdSelfguidedFilterTest
 
     uint16_t *input_ =
         (uint16_t *)aom_memalign(32, stride * (max_h + 32) * sizeof(uint16_t));
+    ASSERT_NE(input_, nullptr);
     uint16_t *output_ = (uint16_t *)aom_memalign(
         32, out_stride * (max_h + 32) * sizeof(uint16_t));
+    ASSERT_NE(output_, nullptr);
     uint16_t *output2_ = (uint16_t *)aom_memalign(
         32, out_stride * (max_h + 32) * sizeof(uint16_t));
+    ASSERT_NE(output2_, nullptr);
     int32_t *tmpbuf = (int32_t *)aom_memalign(32, RESTORATION_TMPBUF_SIZE);
+    ASSERT_NE(tmpbuf, nullptr);
 
     uint16_t *input = input_ + stride * 16 + 16;
     uint16_t *output = output_ + out_stride * 16 + 16;

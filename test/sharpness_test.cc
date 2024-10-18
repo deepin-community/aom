@@ -30,11 +30,11 @@ const std::unordered_map<
     kPsnrThreshold = { { static_cast<int>(::libaom_test::kTwoPassGood),
                          { { 2, { { 2, 37.6 }, { 5, 37.6 } } },
                            { 4, { { 2, 37.5 }, { 5, 37.5 } } },
-                           { 6, { { 2, 37.5 }, { 5, 37.5 } } } } },
+                           { 6, { { 2, 37.4 }, { 5, 37.4 } } } } },
                        { static_cast<int>(::libaom_test::kAllIntra),
                          { { 3, { { 2, 42.2 }, { 5, 42.2 } } },
                            { 6, { { 2, 41.8 }, { 4, 41.9 }, { 5, 41.9 } } },
-                           { 9, { { 2, 41.1 }, { 5, 41.1 } } } } } };
+                           { 9, { { 2, 41.0 }, { 5, 41.0 } } } } } };
 
 // This class is used to test sharpness parameter configured through control
 // call using AOME_SET_SHARPNESS for different encoder configurations.
@@ -48,7 +48,7 @@ class SharpnessTest
         cpu_used_(GET_PARAM(2)), sharpness_level_(GET_PARAM(3)), psnr_(0.0),
         nframes_(0) {}
 
-  ~SharpnessTest() override {}
+  ~SharpnessTest() override = default;
 
   void SetUp() override {
     InitializeConfig(encoding_mode_);
@@ -97,7 +97,7 @@ class SharpnessTest
 
     std::unique_ptr<libaom_test::VideoSource> video(
         new libaom_test::Y4mVideoSource("paris_352_288_30.y4m", 0, kFrames));
-    ASSERT_TRUE(video.get() != NULL);
+    ASSERT_NE(video, nullptr);
 
     ASSERT_NO_FATAL_FAILURE(RunLoop(video.get()));
     const double psnr = GetAveragePsnr();

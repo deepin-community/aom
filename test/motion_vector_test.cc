@@ -43,9 +43,9 @@ class MotionVectorTestLarge
       : EncoderTest(GET_PARAM(0)), encoding_mode_(GET_PARAM(1)),
         cpu_used_(GET_PARAM(2)), mv_test_mode_(GET_PARAM(3)) {}
 
-  virtual ~MotionVectorTestLarge() {}
+  ~MotionVectorTestLarge() override = default;
 
-  virtual void SetUp() {
+  void SetUp() override {
     InitializeConfig(encoding_mode_);
     if (encoding_mode_ != ::libaom_test::kRealTime) {
       cfg_.g_lag_in_frames = 3;
@@ -56,8 +56,8 @@ class MotionVectorTestLarge
     }
   }
 
-  virtual void PreEncodeFrameHook(::libaom_test::VideoSource *video,
-                                  ::libaom_test::Encoder *encoder) {
+  void PreEncodeFrameHook(::libaom_test::VideoSource *video,
+                          ::libaom_test::Encoder *encoder) override {
     if (video->frame() == 0) {
       encoder->Control(AOME_SET_CPUUSED, cpu_used_);
       encoder->Control(AV1E_ENABLE_MOTION_VECTOR_UNIT_TEST, mv_test_mode_);
@@ -92,7 +92,7 @@ TEST_P(MotionVectorTestLarge, OverallTest) {
   video.reset(new libaom_test::YUVVideoSource(
       "niklas_640_480_30.yuv", AOM_IMG_FMT_I420, width, height, 30, 1, 0, 3));
 
-  ASSERT_TRUE(video.get() != NULL);
+  ASSERT_NE(video, nullptr);
   ASSERT_NO_FATAL_FAILURE(RunLoop(video.get()));
 }
 

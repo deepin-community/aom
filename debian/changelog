@@ -1,11 +1,334 @@
-aom (3.2.0-deepin1) stable; urgency=medium
+aom (3.9.1-1) unstable; urgency=medium
 
-  * fix CVE-2024-5171
+  * Team upload.
+  * Upload to unstable.
 
- -- kongxinglong <kongxinglong@uniontech.com>  Thu, 17 Oct 2024 15:52:09 +0800
+ -- Boyuan Yang <byang@debian.org>  Mon, 08 Jul 2024 20:51:31 -0400
 
-aom (3.2.0-deepin) stable; urgency=medium
+aom (3.9.1-1~exp1) experimental; urgency=medium
 
-  * ['Rebuild  against by  current gcc 11.2']
+  * Team upload.
+  * New upstream release.
+  * debian/patches/: Drop backported CVE-2024-5171-*.patch, merged upstream.
+  * debian/patches/: Refresh patches.
 
- -- Deepin Packages Builder <packages@deepin.org>  Wed, 10 Aug 2022 21:05:53 +0800
+ -- Boyuan Yang <byang@debian.org>  Mon, 08 Jul 2024 15:59:40 -0400
+
+aom (3.8.2-3) unstable; urgency=medium
+
+  * Team upload
+
+  [ Marc Deslauriers ]
+  * SECURITY UPDATE: Integer overflow in img_alloc_helper
+    - debian/patches/CVE-2024-5171-1.patch: fix integer overflows in calc
+      of stride_in_bytes in aom/src/aom_image.c, test/aom_image_test.cc.
+    - debian/patches/CVE-2024-5171-2.patch: avoid integer overflows in
+      align_image_dimension() in aom/aom_image.h, aom/src/aom_image.c,
+      test/aom_image_test.cc.
+    - CVE-2024-5171
+
+ -- Jeremy Bícha <jbicha@ubuntu.com>  Wed, 05 Jun 2024 14:30:24 -0400
+
+aom (3.8.2-2) unstable; urgency=medium
+
+  * Upload to unstable.
+  * debian/control: Add missing (test-)build-dep pkgconf.
+
+  [ Vladimir Petko ]
+  * Run package tests at the build time. (See LP bug 2004442)
+
+ -- Boyuan Yang <byang@debian.org>  Wed, 20 Mar 2024 14:41:54 -0400
+
+aom (3.8.2-1) experimental; urgency=medium
+
+  * Team upload.
+  * New upstream stable release.
+  * debian/patches/backport/*: Drop old backported patches.
+
+ -- Boyuan Yang <byang@debian.org>  Tue, 19 Mar 2024 10:49:16 -0400
+
+aom (3.8.1-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream stable release.
+  * debian/patches/backport/*: Drop old backported patches.
+  * debian/patches/backport/:
+    + 0004-Zero-initialize-an-array-in-cdef-search.patch: Backport
+      commits from upstream 3.8.x branch.
+
+ -- Boyuan Yang <byang@debian.org>  Sat, 27 Jan 2024 16:30:04 -0500
+
+aom (3.7.1-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream stable release.
+  * debian/patches/backport/0007,0008: Drop patches applied upstream.
+
+ -- Boyuan Yang <byang@debian.org>  Sun, 26 Nov 2023 15:47:02 -0500
+
+aom (3.7.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * Test upload 3.7.0 version to Debian Unstable.
+    + Fixes CVE-2023-39616.
+  * debian/patches/backport/0005,0006: Backport upstream patches
+    from trunk that fixes endian handling.
+  * debian/patches/backport/:
+    + 0007-rtc-Only-allow-accurate_bit_estimate-for-low-bitdept.patch:
+    + 0008-rtc-Disable-two-features-for-high-bitdepth-mode.patch:
+      Backport patches from upstream ironbark (3.7.0) branch.
+  * debian/rules: Explicitly set internal flag CONFIG_BIG_ENDIAN
+    to correctly indicate endianness due to upstream defunct in
+    CMake handling.
+
+ -- Boyuan Yang <byang@debian.org>  Wed, 11 Oct 2023 19:08:40 -0400
+
+aom (3.7.0-1~exp1) experimental; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+    + Source code is the same as 3.7.0~rc3.
+  * Upload to experimental for now since 3.7.x series has
+    autopkgtest regression on s390x.
+  * d/p/backport/0004-Align-an-array-in-highbd_warp_error.patch:
+    Backport patch to fix some alignment error.
+
+ -- Boyuan Yang <byang@debian.org>  Tue, 05 Sep 2023 17:22:05 -0400
+
+aom (3.7.0~rc3-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * debian/patches: Refresh patches.
+  * debian/copyright: Minor updates.
+  * debian/rules: Fix help2man man pages to provide more informative
+    whatis entry (lintian).
+  * debian/*.1: Manually refresh man pages.
+
+ -- Boyuan Yang <byang@debian.org>  Thu, 31 Aug 2023 17:43:05 -0400
+
+aom (3.6.1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/control:
+    + Build-depends on system libwebm-dev.
+    + Restrict libwebm-dev version requirement to 1.0.0.30 or higher
+      due to requirement of new header file layout.
+  * debian/patches: Add patch to use system libwebm instead of
+    bundled one. (Closes: #1030891)
+
+ -- Boyuan Yang <byang@debian.org>  Wed, 21 Jun 2023 13:13:04 -0400
+
+aom (3.6.0-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Boyuan Yang <byang@debian.org>  Sat, 11 Feb 2023 10:25:25 -0500
+
+aom (3.6.0~rc2-1~exp1) experimental; urgency=medium
+
+  * New upstream release candidate.
+  * debian/copyright: Fix typo in PATENT license file.
+  * debian/patches: Refresh patches.
+
+ -- Boyuan Yang <byang@debian.org>  Tue, 31 Jan 2023 21:30:20 -0500
+
+aom (3.5.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release 3.5.0.
+  * debian/rules: Also install man pages from help2man.
+
+ -- Boyuan Yang <byang@debian.org>  Fri, 23 Sep 2022 16:17:46 -0400
+
+aom (3.5.0~rc1-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release 3.5.0~rc1.
+  * debian/copyright: Update copyright date.
+
+ -- Boyuan Yang <byang@debian.org>  Wed, 14 Sep 2022 14:44:00 -0400
+
+aom (3.4.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release 3.4.0.
+
+ -- Boyuan Yang <byang@debian.org>  Sun, 19 Jun 2022 10:43:54 -0400
+
+aom (3.4.0~rc1-1~exp1) experimental; urgency=medium
+
+  * Team upload.
+  * New upstream release 3.4.0~rc1.
+  * debian/patches: Refresh patches.
+  * debian/rules: Update buildflag name as recommended by upstream
+    (CONFIG_LOWBITDEPTH -> FORCE_HIGHBITDEPTH_DECODING).
+
+ -- Boyuan Yang <byang@debian.org>  Thu, 09 Jun 2022 15:06:45 -0400
+
+aom (3.3.0-2) unstable; urgency=medium
+
+  * Team upload.
+  * Rebuild against new libyuv.
+  * debian/control: Use googlesource project as homepage.
+  * debian/control: Bump Standards-Version to 4.6.1.
+
+ -- Boyuan Yang <byang@debian.org>  Mon, 16 May 2022 13:41:44 -0400
+
+aom (3.3.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release 3.3.0.
+  * debian/rules: Use -f flag for file removal.
+
+ -- Boyuan Yang <byang@debian.org>  Sun, 20 Feb 2022 12:14:54 -0500
+
+aom (3.2.0-2) unstable; urgency=medium
+
+  * Team upload.
+  * debian/control:
+    + Bump debhelper compat to v13.
+    + Bump CMake version requirement to 3.6.
+  * debian/patches/0002: Add patch to use system libyuv instead of
+    embedded one.
+  * debian/control: Add new build-dependency libyuv-dev.
+  * debian/rules: Explicitly specify CONFIG_LIBYUV=1.
+  * debian/rules: Remove third_party/libyuv/ directory before
+    configure. This prevents accidentally using embedded libyuv
+    copy for building in the future.
+
+ -- Boyuan Yang <byang@debian.org>  Sun, 05 Dec 2021 16:27:40 -0500
+
+aom (3.2.0-1) unstable; urgency=high
+
+  * Team upload.
+  * Upload to unstable. (Closes: #997983)
+
+ -- Boyuan Yang <byang@debian.org>  Mon, 01 Nov 2021 18:23:49 -0400
+
+aom (3.2.0-1~exp1) experimental; urgency=medium
+
+  * Team upload.
+  * New upstream release 3.2.0. (Closes: #972467, #952564)
+    + Fix various security issues. (CVE-2021-30474, CVE-2021-30475)
+    + Fix non-heap memory free. (Closes: #988211, CVE-2021-30473)
+  * debian/control:
+    + Bump Standards-Version to 4.6.0.
+    + Rename library package libaom0 -> libaom3 (SONAME bump).
+  * debian/patches: Dropped old patches, merged upstream.
+  * debian/patches/0001-mathjax: Use local mathjax js copy from
+    libjs-mathjax to prevent privacy breach (lintian error).
+  * debian/watch: Update to properly handle RC versions.
+  * debian/copyright: Refresh copyright information.
+  * debian/libaom3.symbols: Document library symbols.
+  * debian/libaom-dev.install: Also install static library.
+  * debian/rules:
+    + Do not set LIB_INSTALL_DIR since aom upstream is no longer using
+      this variable.
+
+ -- Boyuan Yang <byang@debian.org>  Thu, 21 Oct 2021 18:37:31 -0400
+
+aom (1.0.0.errata1.ds-1) unstable; urgency=high
+
+  * Team upload.
+  * Revert original source code to 1.0.0-errata1 due to implicit
+    ABI break in 1.0.0-errata1-avif. (Closes: #997806)
+  * debian/source/{options,patch-header}: Dropped.
+
+ -- Boyuan Yang <byang@debian.org>  Wed, 27 Oct 2021 15:42:12 -0400
+
+aom (1.0.0.errata1.avif-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release 1.0.0-errata1-avif, taken from upstream
+    git commit 4eb1e77 (2019-12-12).
+    + This version is said to work with libavif, but actually
+      not. (see: #952564)
+    + More work is needed to package newer aom:
+      aom 2.x bumps SONAME to 2, which needs to go through NEW queue.
+      aom 3.x needs unpackaged libyuv (currently in NEW queue).
+  * debian/patches: Refresh existing patches.
+  * debian/libaom0.symbols: Refresh symbols.
+
+  [ Helmut Grohne ]
+  * Reduce Build-Depends: (Closes: #982184)
+    + Demote doxygen to Build-Depends-Indep.
+    + Drop unused graphviz since HAVE_DOT=no.
+
+ -- Boyuan Yang <byang@debian.org>  Tue, 19 Oct 2021 17:14:14 -0400
+
+aom (1.0.0.errata1-3) unstable; urgency=medium
+
+  [ James Cowgill ]
+  * d/tests:
+    - Merge pkg-config invocations.
+    - Make library-build test cross test friendly.
+      Thanks to Steve Langasek for the original patch. (Closes: #946236)
+
+  [ Ondřej Nový ]
+  * d/control: Bump Standards-Version to 4.4.1.
+
+ -- James Cowgill <jcowgill@debian.org>  Thu, 02 Jan 2020 19:26:18 +0000
+
+aom (1.0.0.errata1-2) unstable; urgency=medium
+
+  [ James Cowgill ]
+  * d/rules:
+    - Manually set AOM_NEON_INTRIN_FLAG on armhf.
+    - Enable CONFIG_LOWBITDEPTH.
+
+  [ Tom Finegan ]
+  * cmake: Fix arm neon intrinsic flag handling bugs.
+
+ -- James Cowgill <jcowgill@debian.org>  Sun, 01 Sep 2019 13:28:49 +0100
+
+aom (1.0.0.errata1-1) unstable; urgency=medium
+
+  [ James Cowgill ]
+  * New upstream release.
+
+  * d/control:
+    - Add build-dependency on graphviz,
+    - Bump debhelper compat to 12,
+    - Bump standards version to 4.4.0,
+  * d/rules: Manually specify target cpu and enable multithreading.
+  * d/source: Add dgit-maint-merge workflow files,
+  * d/watch: Fix tag URLs and upstream version mangling,
+
+  [ Jan Beich ]
+  * cmake: Assume ELF object format for unknown target systems.
+    (Closes: #934604)
+
+ -- James Cowgill <jcowgill@debian.org>  Sat, 31 Aug 2019 19:21:46 +0100
+
+aom (1.0.0-3) unstable; urgency=medium
+
+  [ John Paul Adrian Glaubitz ]
+  * d/rules: Disable AltVec on powerpcspe. (Closes: #909950)
+
+ -- James Cowgill <jcowgill@debian.org>  Thu, 04 Oct 2018 18:21:30 +0100
+
+aom (1.0.0-2) unstable; urgency=medium
+
+  * Cherry-pick upstream commit to fix FTBFS on ppc64el.
+  * d/control:
+    - Use correct Maintainer.
+    - Bump standards version.
+  * d/rules:
+    - Workaround broken 32-bit ARM architecture detection.
+    - Disable optimizations on x32 to fix FTBFS.
+  * d/tests:
+    - control: make library-build depend on build-essential.
+    - encode-decode: fix target size.
+    - library-build: Remove useless include.
+    - library-build: Make some function args const.
+    - library-build: Test number of generated packets.
+    - library-build: Add copyright notice.
+
+ -- James Cowgill <jcowgill@debian.org>  Thu, 20 Sep 2018 09:58:42 +0100
+
+aom (1.0.0-1) unstable; urgency=medium
+
+  * Initial release. (Closes: #905096)
+
+ -- James Cowgill <jcowgill@debian.org>  Sun, 12 Aug 2018 18:18:57 +0100

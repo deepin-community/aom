@@ -37,12 +37,12 @@ class AVxFirstPassEncoderThreadTest
     init_flags_ = AOM_CODEC_USE_PSNR;
 
     row_mt_ = 1;
-    firstpass_stats_.buf = NULL;
+    firstpass_stats_.buf = nullptr;
     firstpass_stats_.sz = 0;
   }
-  virtual ~AVxFirstPassEncoderThreadTest() { free(firstpass_stats_.buf); }
+  ~AVxFirstPassEncoderThreadTest() override { free(firstpass_stats_.buf); }
 
-  virtual void SetUp() {
+  void SetUp() override {
     InitializeConfig(encoding_mode_);
 
     cfg_.g_lag_in_frames = 35;
@@ -53,18 +53,18 @@ class AVxFirstPassEncoderThreadTest
     cfg_.rc_min_quantizer = 0;
   }
 
-  virtual void BeginPassHook(unsigned int /*pass*/) {
+  void BeginPassHook(unsigned int /*pass*/) override {
     encoder_initialized_ = false;
     abort_ = false;
   }
 
-  virtual void EndPassHook() {
+  void EndPassHook() override {
     // For first pass stats test, only run first pass encoder.
     if (cfg_.g_pass == AOM_RC_FIRST_PASS) abort_ = true;
   }
 
-  virtual void PreEncodeFrameHook(::libaom_test::VideoSource * /*video*/,
-                                  ::libaom_test::Encoder *encoder) {
+  void PreEncodeFrameHook(::libaom_test::VideoSource * /*video*/,
+                          ::libaom_test::Encoder *encoder) override {
     if (!encoder_initialized_) {
       // Encode in 2-pass mode.
       SetTileSize(encoder);
@@ -84,7 +84,7 @@ class AVxFirstPassEncoderThreadTest
     encoder->Control(AV1E_SET_TILE_ROWS, tile_rows_);
   }
 
-  virtual void StatsPktHook(const aom_codec_cx_pkt_t *pkt) {
+  void StatsPktHook(const aom_codec_cx_pkt_t *pkt) override {
     const uint8_t *const pkt_buf =
         reinterpret_cast<uint8_t *>(pkt->data.twopass_stats.buf);
     const size_t pkt_size = pkt->data.twopass_stats.sz;
@@ -95,6 +95,7 @@ class AVxFirstPassEncoderThreadTest
 
     firstpass_stats_.buf =
         realloc(firstpass_stats_.buf, firstpass_stats_.sz + pkt_size);
+    ASSERT_NE(firstpass_stats_.buf, nullptr);
     memcpy((uint8_t *)firstpass_stats_.buf + firstpass_stats_.sz, pkt_buf,
            pkt_size);
     firstpass_stats_.sz += pkt_size;
@@ -226,9 +227,9 @@ class AVxEncoderThreadTest
     md5_dec_.clear();
     md5_enc_.clear();
   }
-  virtual ~AVxEncoderThreadTest() { delete decoder_; }
+  ~AVxEncoderThreadTest() override { delete decoder_; }
 
-  virtual void SetUp() {
+  void SetUp() override {
     InitializeConfig(encoding_mode_);
 
     if (encoding_mode_ == ::libaom_test::kOnePassGood ||
@@ -243,12 +244,12 @@ class AVxEncoderThreadTest
     cfg_.rc_min_quantizer = 0;
   }
 
-  virtual void BeginPassHook(unsigned int /*pass*/) {
+  void BeginPassHook(unsigned int /*pass*/) override {
     encoder_initialized_ = false;
   }
 
-  virtual void PreEncodeFrameHook(::libaom_test::VideoSource * /*video*/,
-                                  ::libaom_test::Encoder *encoder) {
+  void PreEncodeFrameHook(::libaom_test::VideoSource * /*video*/,
+                          ::libaom_test::Encoder *encoder) override {
     if (!encoder_initialized_) {
       SetTileSize(encoder);
       encoder->Control(AOME_SET_CPUUSED, set_cpu_used_);
@@ -260,6 +261,16 @@ class AVxEncoderThreadTest
         encoder->Control(AOME_SET_ARNR_STRENGTH, 5);
         encoder->Control(AV1E_SET_FRAME_PARALLEL_DECODING, 0);
         encoder->Control(AV1E_SET_MAX_GF_INTERVAL, 4);
+        // In row_mt_=0 case, the output of single thread (1 thread) will be
+        // compared with multi thread (4 thread) output (as per line no:340).
+        // Currently, Loop restoration stage is conditionally disabled for speed
+        // 5, 6 when num_workers > 1. Due to this, the match between single
+        // thread and multi thread output can not be achieved. Hence, testing
+        // this case alone with LR disabled.
+        // TODO(aomedia:3446): Remove the constraint on this test case once Loop
+        // restoration state is same in both single and multi thread path.
+        if (set_cpu_used_ >= 5 && row_mt_ == 0)
+          encoder->Control(AV1E_SET_ENABLE_RESTORATION, 0);
       } else if (encoding_mode_ == ::libaom_test::kRealTime) {
         encoder->Control(AOME_SET_ENABLEAUTOALTREF, 0);
         encoder->Control(AV1E_SET_AQ_MODE, 3);
@@ -279,7 +290,7 @@ class AVxEncoderThreadTest
     encoder->Control(AV1E_SET_TILE_ROWS, tile_rows_);
   }
 
-  virtual void FramePktHook(const aom_codec_cx_pkt_t *pkt) {
+  void FramePktHook(const aom_codec_cx_pkt_t *pkt) override {
     size_enc_.push_back(pkt->data.frame.sz);
 
     ::libaom_test::MD5 md5_enc;
@@ -304,7 +315,7 @@ class AVxEncoderThreadTest
 
   void DoTest() {
     ::libaom_test::YUVVideoSource video(
-        "niklas_640_480_30.yuv", AOM_IMG_FMT_I420, 640, 480, 30, 1, 15, 21);
+        "niklas_640_480_30.yuv", AOM_IMG_FMT_I420, 640, 480, 30, 1, 15, 26);
     cfg_.rc_target_bitrate = 1000;
 
     if (row_mt_ == 0) {
@@ -440,10 +451,10 @@ TEST_P(AVxEncoderThreadRTTest, EncoderResultTest) {
   DoTest();
 }
 
-// For real time mode, test speed 6, 7, 8, 9.
+// For real time mode, test speed 5, 6, 7, 8, 9, 10.
 AV1_INSTANTIATE_TEST_SUITE(AVxEncoderThreadRTTest,
                            ::testing::Values(::libaom_test::kRealTime),
-                           ::testing::Values(6, 7, 8, 9),
+                           ::testing::Values(5, 6, 7, 8, 9, 10),
                            ::testing::Values(0, 2), ::testing::Values(0, 2),
                            ::testing::Values(0, 1));
 
@@ -520,15 +531,15 @@ AV1_INSTANTIATE_TEST_SUITE(AVxEncoderThreadAllIntraTestLarge,
 #endif  // !CONFIG_REALTIME_ONLY
 
 class AVxEncoderThreadLSTest : public AVxEncoderThreadTest {
-  virtual void SetTileSize(libaom_test::Encoder *encoder) {
+  void SetTileSize(libaom_test::Encoder *encoder) override {
     encoder->Control(AV1E_SET_TILE_COLUMNS, tile_cols_);
     encoder->Control(AV1E_SET_TILE_ROWS, tile_rows_);
   }
 
-  virtual void DoTestMaxThreads(::libaom_test::YUVVideoSource *video,
-                                const std::vector<size_t> ref_size_enc,
-                                const std::vector<std::string> ref_md5_enc,
-                                const std::vector<std::string> ref_md5_dec) {
+  void DoTestMaxThreads(::libaom_test::YUVVideoSource *video,
+                        const std::vector<size_t> ref_size_enc,
+                        const std::vector<std::string> ref_md5_enc,
+                        const std::vector<std::string> ref_md5_dec) override {
     (void)video;
     (void)ref_size_enc;
     (void)ref_md5_enc;
