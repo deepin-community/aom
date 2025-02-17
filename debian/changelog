@@ -1,3 +1,27 @@
+aom (3.11.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+
+ -- Boyuan Yang <byang@debian.org>  Sun, 17 Nov 2024 10:50:12 -0500
+
+aom (3.11.0~rc1-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release candidate.
+  * debian/libaom3.symbols: Drop symbols that are no longer exported
+    upstream as part of bugfix.
+
+ -- Boyuan Yang <byang@debian.org>  Thu, 07 Nov 2024 18:40:43 -0500
+
+aom (3.10.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * Upload to unstable.
+  * debian/patches: Refresh patches.
+
+ -- Boyuan Yang <byang@debian.org>  Tue, 22 Oct 2024 08:22:20 -0400
+
 aom (3.9.1-1) unstable; urgency=medium
 
   * Team upload.

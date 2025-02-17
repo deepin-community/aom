@@ -10,10 +10,10 @@ Subject: use system libwebm
  4 files changed, 18 insertions(+), 14 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 4d52985..16602f8 100644
+index fe2033d..fdf9f5a 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -732,26 +732,29 @@ if(ENABLE_EXAMPLES OR ENABLE_TESTS OR ENABLE_TOOLS)
+@@ -750,26 +750,29 @@ if(ENABLE_EXAMPLES OR ENABLE_TESTS OR ENABLE_TOOLS)
    endif()
  
    if(CONFIG_WEBM_IO)
@@ -52,7 +52,7 @@ index 4d52985..16602f8 100644
      endforeach()
    endif()
 diff --git a/common/webmdec.cc b/common/webmdec.cc
-index 33bda59..27483c5 100644
+index 2a953ae..aa9997d 100644
 --- a/common/webmdec.cc
 +++ b/common/webmdec.cc
 @@ -15,8 +15,8 @@
@@ -67,7 +67,7 @@ index 33bda59..27483c5 100644
  namespace {
  
 diff --git a/common/webmenc.cc b/common/webmenc.cc
-index bb754e8..72f48d5 100644
+index 0b0ff65..e05d104 100644
 --- a/common/webmenc.cc
 +++ b/common/webmenc.cc
 @@ -19,9 +19,9 @@
@@ -84,10 +84,10 @@ index bb754e8..72f48d5 100644
  namespace {
  const uint64_t kDebugTrackUid = 0xDEADBEEF;
 diff --git a/test/test.cmake b/test/test.cmake
-index a11f758..900de80 100644
+index 891e23b..a8774fd 100644
 --- a/test/test.cmake
 +++ b/test/test.cmake
-@@ -498,7 +498,8 @@ function(setup_aom_test_targets)
+@@ -501,7 +501,8 @@ function(setup_aom_test_targets)
    target_link_libraries(test_libaom ${AOM_LIB_LINK_TYPE} aom aom_gtest)
  
    if(CONFIG_WEBM_IO)
