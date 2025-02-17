@@ -7,7 +7,7 @@ Subject: doc: Use libjs-mathjax rather than cloudflare copy
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/libs.doxy_template b/libs.doxy_template
-index 01da81a..4ddc2a3 100644
+index 34216b8..9cddfa0 100644
 --- a/libs.doxy_template
 +++ b/libs.doxy_template
 @@ -1532,7 +1532,7 @@ MATHJAX_FORMAT         = HTML-CSS
