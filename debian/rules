@@ -13,9 +13,8 @@ ifeq ($(DEB_HOST_ARCH_CPU),arm64)
   TARGET_CPU = arm64
 else ifeq ($(DEB_HOST_ARCH_CPU)_$(DEB_HOST_ARCH_ABI),arm_eabihf)
   TARGET_CPU = armv7
-  # On ARM, we need to manually pass the flag used to compile NEON
-  # code with
-  CONFIG_EXTRA := -DAOM_NEON_INTRIN_FLAG=-mfpu=neon
+  # Explicitly disable NEON for Debian armhf baseline requirement
+  CONFIG_EXTRA := -DENABLE_NEON=0
 else ifneq ($(filter mips64%, $(DEB_HOST_ARCH_CPU)),)
   TARGET_CPU = mips64
 else ifneq ($(filter mips%, $(DEB_HOST_ARCH_CPU)),)
