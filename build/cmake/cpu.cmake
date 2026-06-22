@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Alliance for Open Media. All rights reserved
+# Copyright (c) 2017, Alliance for Open Media. All rights reserved.
 #
 # This source code is subject to the terms of the BSD 2 Clause License and the
 # Alliance for Open Media Patent License 1.0. If the BSD 2 Clause License was
@@ -19,7 +19,8 @@ if("${AOM_TARGET_CPU}" STREQUAL "arm64")
   set(AOM_NEON_DOTPROD_DEFAULT_FLAG "-march=armv8.2-a+dotprod")
   set(AOM_NEON_I8MM_DEFAULT_FLAG "-march=armv8.2-a+dotprod+i8mm")
   set(AOM_SVE_DEFAULT_FLAG "-march=armv8.2-a+dotprod+i8mm+sve")
-  set(AOM_SVE2_DEFAULT_FLAG "-march=armv9-a+sve2") # SVE2 is a v9-only feature
+  set(AOM_SVE2_DEFAULT_FLAG "-march=armv9-a+i8mm+sve2") # SVE2 is a v9-only
+                                                        # feature
 
   # Check that the compiler flag to enable each flavor is supported by the
   # compiler. This may not be the case for new architecture features on old
@@ -33,12 +34,12 @@ if("${AOM_TARGET_CPU}" STREQUAL "arm64")
       # against stderr does not recognise the "invalid feature modifier" error
       # produced by certain versions of GCC, leading to the feature being
       # incorrectly marked as available.
-      set(OLD_CMAKE_REQURED_FLAGS ${CMAKE_REQUIRED_FLAGS})
+      set(OLD_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
       set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${AOM_${flavor}_FLAG}")
       unset(FLAG_SUPPORTED)
       aom_check_source_compiles("arm_feature_flag_${flavor_lower}_available"
                                 "static void function(void) {}" FLAG_SUPPORTED)
-      set(CMAKE_REQUIRED_FLAGS ${OLD_CMAKE_REQURED_FLAGS})
+      set(CMAKE_REQUIRED_FLAGS ${OLD_CMAKE_REQUIRED_FLAGS})
 
       if(NOT ${FLAG_SUPPORTED})
         set(ENABLE_${flavor} 0)
@@ -48,7 +49,7 @@ if("${AOM_TARGET_CPU}" STREQUAL "arm64")
 
   # SVE and SVE2 require that the Neon-SVE bridge header is also available.
   if(ENABLE_SVE OR ENABLE_SVE2)
-    set(OLD_CMAKE_REQURED_FLAGS ${CMAKE_REQUIRED_FLAGS})
+    set(OLD_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
     set(OLD_CMAKE_TRY_COMPILE_TARGET_TYPE ${CMAKE_TRY_COMPILE_TARGET_TYPE})
     set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${AOM_SVE_FLAG}")
     set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
@@ -68,7 +69,7 @@ svfloat32_t func(svfloat32_t a) {
   other()\;
   return a\;
 }" CAN_COMPILE_SVE)
-    set(CMAKE_REQUIRED_FLAGS ${OLD_CMAKE_REQURED_FLAGS})
+    set(CMAKE_REQUIRED_FLAGS ${OLD_CMAKE_REQUIRED_FLAGS})
     set(CMAKE_TRY_COMPILE_TARGET_TYPE ${OLD_CMAKE_TRY_COMPILE_TARGET_TYPE})
     if(HAVE_SVE_HEADERS EQUAL 0 OR CAN_COMPILE_SVE EQUAL 0)
       set(ENABLE_SVE 0)
@@ -131,4 +132,15 @@ elseif("${AOM_TARGET_CPU}" MATCHES "^x86")
       set(AOM_RTCD_FLAGS ${AOM_RTCD_FLAGS} --disable-${flavor})
     endif()
   endforeach()
+elseif("${AOM_TARGET_CPU}" MATCHES "riscv")
+  set(AOM_ARCH_RISCV64 1)
+  set(RTCD_ARCH_RISCV64 "yes")
+
+  if(ENABLE_RVV)
+    set(HAVE_RVV 1)
+    set(RTCD_HAVE_RVV "yes")
+  else()
+    set(HAVE_RVV 0)
+    set(AOM_RTCD_FLAGS ${AOM_RTCD_FLAGS} --disable-rvv)
+  endif()
 endif()
